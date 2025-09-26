@@ -1,4 +1,4 @@
-package com.fabrik12.monopolyappwallet.ui.theme
+package com.fabrik12.monopolyappwallet.ui
 
 import android.util.Log
 import okhttp3.*

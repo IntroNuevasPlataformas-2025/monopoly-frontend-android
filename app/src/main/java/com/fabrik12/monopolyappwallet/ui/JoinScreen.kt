@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 
+import com.fabrik12.monopolyappwallet.ui.WebSocketClient
+
 @Composable
 fun JoinScreen() {
     // Memoria para campo de texto
@@ -54,6 +56,9 @@ fun JoinScreen() {
 
         Button(
             onClick = {
+                if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
+                    WebSocketClient.connect()
+                }
                 /* Logica con Websocket */
             },
             modifier = Modifier.fillMaxWidth(),
