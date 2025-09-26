@@ -25,6 +25,14 @@ fun JoinScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Texto de bienvenida
+        Text(
+            text = "Crea o Unete a una partida",
+            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         // Campo de texto para el nombre del Jugador
         OutlinedTextField(
             value = playerName.value,
@@ -48,7 +56,7 @@ fun JoinScreen() {
             onClick = {
                 /* Logica con Websocket */
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Unirse a la Partida")
         }
