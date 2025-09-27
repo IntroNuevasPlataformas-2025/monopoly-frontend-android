@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import android.util.Log
 
 import com.fabrik12.monopolyappwallet.ui.WebSocketClient
 
@@ -57,17 +58,19 @@ fun JoinScreen() {
         Button(
             onClick = {
                 if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
-                    WebSocketClient.connect()
+                    WebSocketClient.connect{ message ->
+                        Log.d("JoinScreen", "Mensaje recibido en la UI: $message")
+                        // Luego navegar a Pantalla 2
+                    }
                     Thread.sleep(500) // Esperar 0.5 segundos
                     WebSocketClient.sendMessage(
                         playerName.value,
                         gameId.value)
                 }
-                /* Logica con Websocket */
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Unirse a la Partida")
+            Text("CREAR PARTIDA")
         }
     }
 }

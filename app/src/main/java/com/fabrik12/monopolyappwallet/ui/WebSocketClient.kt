@@ -5,12 +5,12 @@ import okhttp3.*
 import org.json.JSONObject
 
 object WebSocketClient {
-    private const val SERVER_URL = "ws://10.0.2.2:3000"
+    private const val SERVER_URL = "ws://192.168.18.21:3000"
 
     private lateinit var client: OkHttpClient
     private var webSocket: WebSocket? = null
 
-    fun connect() {
+    fun connect(onMessageReceived: (String) -> Unit) {
         client = OkHttpClient()
         val request = Request.Builder().url(SERVER_URL).build()
 
@@ -22,6 +22,7 @@ object WebSocketClient {
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 Log.d("WebSocket", "Mensaje recibido: $text")
+                onMessageReceived(text)
                 // Manejar el mensaje recibido
             }
 
@@ -48,7 +49,7 @@ object WebSocketClient {
         }
 
         val jsonMessage = JSONObject().apply {
-            put("type", "JOIN_GAME")
+            put("type", "CREATE_GAME")
             put("payload", jsonPayload)
         }
 
