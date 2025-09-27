@@ -58,6 +58,10 @@ fun JoinScreen() {
             onClick = {
                 if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
                     WebSocketClient.connect()
+                    Thread.sleep(500) // Esperar 0.5 segundos
+                    WebSocketClient.sendMessage(
+                        playerName.value,
+                        gameId.value)
                 }
                 /* Logica con Websocket */
             },
