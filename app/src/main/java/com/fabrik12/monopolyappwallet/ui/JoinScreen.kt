@@ -12,11 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
-
-import com.fabrik12.monopolyappwallet.ui.WebSocketClient
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.navigation.NavHostController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
-fun JoinScreen() {
+fun JoinScreen(navController: NavHostController) {
+    val scope = rememberCoroutineScope()
     // Memoria para campo de texto
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
@@ -59,8 +63,18 @@ fun JoinScreen() {
             onClick = {
                 if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
                     WebSocketClient.connect{ message ->
-                        Log.d("JoinScreen", "Mensaje recibido en la UI: $message")
-                        // Luego navegar a Pantalla 2
+                        scope.launch(Dispatchers.Main) {
+                            val jsonResponse = JSONObject(message)
+                            val type = jsonResponse.getString("type")
+
+                            if (type == "GAME_CREATED") {
+                                val payload = jsonResponse.getJSONObject("payload")
+                                val receivedGameId = payload.getString("gameId")
+
+                                // Navegacion
+                                navController.navigate("game_screen/$receivedGameId")
+                            }
+                        }
                     }
                     Thread.sleep(500) // Esperar 0.5 segundos
                     WebSocketClient.sendMessage(
@@ -75,8 +89,9 @@ fun JoinScreen() {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun JoinScreenPreview() {
-    JoinScreen();
+    //JoinScreen();
 }
