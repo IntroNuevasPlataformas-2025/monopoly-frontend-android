@@ -5,7 +5,7 @@ import okhttp3.*
 import org.json.JSONObject
 
 object WebSocketClient {
-    private const val SERVER_URL = "ws://localhost:3000"
+    private const val SERVER_URL = "ws://10.0.2.2:3000"
 
     private lateinit var client: OkHttpClient
     private var webSocket: WebSocket? = null
