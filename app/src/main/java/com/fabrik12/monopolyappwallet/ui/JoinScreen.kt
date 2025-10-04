@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -93,5 +94,6 @@ fun JoinScreen(navController: NavHostController) {
 @Preview(showBackground = true)
 @Composable
 fun JoinScreenPreview() {
-    //JoinScreen();
+    val navController = rememberNavController()
+    JoinScreen(navController = navController);
 }
