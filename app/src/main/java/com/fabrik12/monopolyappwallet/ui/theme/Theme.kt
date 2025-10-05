@@ -9,18 +9,27 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = BrandBlueLight,      // Un azul más claro para que resalte en fondos oscuros
+    background = BrandDarkText,    // Usamos el color de texto oscuro como fondo
+    onBackground = Color.White,    // Texto blanco sobre fondo oscuro
+    surface = BrandDarkText,
+    onSurface = Color.White,
+    onPrimary = BrandDarkText      // Texto oscuro sobre el botón azul claro
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = BrandBlue,           // El color principal para botones
+    background = Color.White,      // Fondo blanco estándar
+    onBackground = BrandDarkText,  // El color del título sobre el fondo blanco
+    surface = Color.White,
+    onSurface = BrandDarkText,     // Color de texto sobre superficies
+    onPrimary = Color.White        // Texto blanco sobre el botón azul
+)
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -31,7 +40,6 @@ private val LightColorScheme = lightColorScheme(
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
     */
-)
 
 @Composable
 fun MonopolyAppWalletTheme(

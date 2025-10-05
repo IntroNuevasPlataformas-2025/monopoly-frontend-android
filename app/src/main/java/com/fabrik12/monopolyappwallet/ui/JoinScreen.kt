@@ -12,13 +12,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.fabrik12.monopolyappwallet.ui.theme.BrandBlue
+import com.fabrik12.monopolyappwallet.ui.theme.BrandGray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -30,6 +37,25 @@ fun JoinScreen(navController: NavHostController) {
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
 
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        // El color de fondo ahora depende del tema
+        focusedContainerColor = if (isSystemInDarkTheme()) {
+            Color.White.copy(alpha = 0.1f) // gris muy sutil para el modo oscuro
+        } else {
+            BrandGray.copy(alpha = 0.1f) // Gris sutil para el modo claro
+        },
+        unfocusedContainerColor = if (isSystemInDarkTheme()) {
+            Color.White.copy(alpha = 0.1f)
+        } else {
+            BrandGray.copy(alpha = 0.1f)
+        },
+        // Asegurar constraste entre el texto y el borde
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        // Borde usando el color primario del tema actual
+        unfocusedBorderColor = Color.Transparent,
+        focusedBorderColor = MaterialTheme.colorScheme.primary
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +82,8 @@ fun JoinScreen(navController: NavHostController) {
                 value = playerName.value,
                 onValueChange = { playerName.value = it },
                 label = { Text("Tu Nombre") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -66,7 +93,8 @@ fun JoinScreen(navController: NavHostController) {
                 value = gameId.value,
                 onValueChange = { gameId.value = it },
                 label = { Text("ID de la Partida") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors
             )
             Spacer(modifier = Modifier.height(16.dp))
 
