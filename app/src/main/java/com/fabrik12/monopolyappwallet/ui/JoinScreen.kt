@@ -26,66 +26,69 @@ fun JoinScreen(navController: NavHostController) {
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        // Texto de bienvenida
-        Text(
-            text = "Crea o Unete a una partida",
-            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
-        )
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .widthIn(max = 500.dp), // Limitarse en pantalla grande
+        ) {
+            // Texto de bienvenida
+            Text(
+                text = "Crea o Unete a una partida",
+                style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Campo de texto para el nombre del Jugador
-        OutlinedTextField(
-            value = playerName.value,
-            onValueChange = { playerName.value = it },
-            label = { Text("Tu Nombre") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            // Campo de texto para el nombre del Jugador
+            OutlinedTextField(
+                value = playerName.value,
+                onValueChange = { playerName.value = it },
+                label = { Text("Tu Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // Campo de texto para el ID de partida
-        OutlinedTextField(
-            value = gameId.value,
-            onValueChange = { gameId.value = it },
-            label = { Text("ID de la Partida") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+            // Campo de texto para el ID de partida
+            OutlinedTextField(
+                value = gameId.value,
+                onValueChange = { gameId.value = it },
+                label = { Text("ID de la Partida") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
-                    WebSocketClient.connect{ message ->
-                        scope.launch(Dispatchers.Main) {
-                            val jsonResponse = JSONObject(message)
-                            val type = jsonResponse.getString("type")
+            Button(
+                onClick = {
+                    if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
+                        WebSocketClient.connect{ message ->
+                            scope.launch(Dispatchers.Main) {
+                                val jsonResponse = JSONObject(message)
+                                val type = jsonResponse.getString("type")
 
-                            if (type == "GAME_CREATED") {
-                                val payload = jsonResponse.getJSONObject("payload")
-                                val receivedGameId = payload.getString("gameId")
+                                if (type == "GAME_CREATED") {
+                                    val payload = jsonResponse.getJSONObject("payload")
+                                    val receivedGameId = payload.getString("gameId")
 
-                                // Navegacion
-                                navController.navigate("game_screen/$receivedGameId")
+                                    // Navegacion
+                                    navController.navigate("game_screen/$receivedGameId")
+                                }
                             }
                         }
+                        Thread.sleep(500) // Esperar 0.5 segundos
+                        WebSocketClient.sendMessage(
+                            playerName.value,
+                            gameId.value)
                     }
-                    Thread.sleep(500) // Esperar 0.5 segundos
-                    WebSocketClient.sendMessage(
-                        playerName.value,
-                        gameId.value)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("CREAR PARTIDA")
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("CREAR PARTIDA")
+            }
         }
     }
 }
