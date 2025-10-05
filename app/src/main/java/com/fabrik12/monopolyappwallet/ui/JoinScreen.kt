@@ -11,20 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.fabrik12.monopolyappwallet.ui.theme.BrandBlue
 import com.fabrik12.monopolyappwallet.ui.theme.BrandGray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,7 +67,7 @@ fun JoinScreen(navController: NavHostController) {
             // Texto de bienvenida
             Text(
                 text = "Crea o Unete a una partida",
-                style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -135,5 +130,5 @@ fun JoinScreen(navController: NavHostController) {
 @Composable
 fun JoinScreenPreview() {
     val navController = rememberNavController()
-    JoinScreen(navController = navController);
+    JoinScreen(navController = navController)
 }
