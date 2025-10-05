@@ -12,7 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import android.util.Log
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
@@ -26,14 +30,18 @@ fun JoinScreen(navController: NavHostController) {
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.weight(1f))
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .widthIn(max = 500.dp), // Limitarse en pantalla grande
+            modifier = Modifier.widthIn(max = 500.dp)
         ) {
             // Texto de bienvenida
             Text(
@@ -90,6 +98,7 @@ fun JoinScreen(navController: NavHostController) {
                 Text("CREAR PARTIDA")
             }
         }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
