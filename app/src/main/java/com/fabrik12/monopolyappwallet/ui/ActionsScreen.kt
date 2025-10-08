@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -58,7 +59,39 @@ fun ActionsScreen() {
             // Form para Pagar a Jugador
             PayPlayerForm()
 
-            // Mas secciones
+            Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
+
+            Text(
+                text = "Manejar Propiedades",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SecondaryActionButton(text = "Construir Casa/Hotel") { /* TODO */ }
+                SecondaryActionButton(text = "Hipotecar Propiedad") { /* TODO */ }
+                SecondaryActionButton(text = "Deshipotecar Propiedad") { /* TODO */ }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
+
+            Text(
+                text = "Eventos del juego",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SecondaryActionButton(text = "Arca comunal") { /* TODO */ }
+                SecondaryActionButton(text = "Casualidad") { /* TODO */ }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp)) // Espacio final
+
         }
     }
 }
@@ -122,6 +155,24 @@ fun PayPlayerForm(){
         Text("Pagar Jugador")
     }
 
+}
+
+/*
+ Componente para botones secundarios (reutilizable)
+ */
+@Composable
+fun SecondaryActionButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        // Colores de tema adaptables
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        Text(text.uppercase())
+    }
 }
 
 @Preview(showBackground = true)
