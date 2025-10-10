@@ -1,5 +1,6 @@
 package com.fabrik12.monopolyappwallet.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,9 +71,9 @@ fun ActionsScreen() {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SecondaryActionButton(text = "Construir Casa/Hotel") { /* TODO */ }
-                SecondaryActionButton(text = "Hipotecar Propiedad") { /* TODO */ }
-                SecondaryActionButton(text = "Deshipotecar Propiedad") { /* TODO */ }
+                SecondaryActionButton(text = "Construir Casa/Hotel") { Log.d("ActionsScreen", "Boton presionado: CONSTRUIR CASA") }
+                SecondaryActionButton(text = "Hipotecar Propiedad") { Log.d("ActionsScreen", "Boton presionado: HIPOTECAR PROPIEDAD") }
+                SecondaryActionButton(text = "Deshipotecar Propiedad") { Log.d("ActionsScreen", "Boton presionado: DESHIPOTECAR PROPIEDAD") }
             }
 
             Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
@@ -86,8 +87,8 @@ fun ActionsScreen() {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SecondaryActionButton(text = "Arca comunal") { /* TODO */ }
-                SecondaryActionButton(text = "Casualidad") { /* TODO */ }
+                SecondaryActionButton(text = "Arca comunal") { Log.d("ActionsScreen", "Boton presionado: ARCA COMUNAL") }
+                SecondaryActionButton(text = "Casualidad") { Log.d("ActionsScreen", "Boton presionado: CASUALIDAD") }
             }
 
             Spacer(modifier = Modifier.height(16.dp)) // Espacio final
@@ -149,7 +150,9 @@ fun PayPlayerForm(){
 
     // Boton principal
     Button(
-        onClick = { /* Acción al hacer clic: Logica de Pago */ },
+        onClick = {
+            Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amount")
+        },
         modifier = Modifier.fillMaxWidth()
     ){
         Text("Pagar Jugador")
