@@ -105,8 +105,9 @@ fun JoinScreen(navController: NavHostController) {
                                     val payload = jsonResponse.getJSONObject("payload")
                                     val receivedGameId = payload.getString("gameId")
 
-                                    // Navegacion
-                                    navController.navigate("game_screen/$receivedGameId")
+                                    // Navegacion (CAMBIO: para probar la pantalla de Acciones)
+                                    //navController.navigate("game_screen/$receivedGameId")
+                                    navController.navigate("actions_screen")
                                 }
                             }
                         }

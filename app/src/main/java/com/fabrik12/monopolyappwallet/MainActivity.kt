@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.fabrik12.monopolyappwallet.ui.ActionsScreen
 import com.fabrik12.monopolyappwallet.ui.GameScreen
 import com.fabrik12.monopolyappwallet.ui.theme.MonopolyAppWalletTheme
 
@@ -36,6 +37,9 @@ class MainActivity : ComponentActivity() {
                         composable("game_screen/{gameId}") { backStackEntry ->
                             val gameId = backStackEntry.arguments?.getString("gameId")
                             GameScreen(gameId = gameId)
+                        }
+                        composable("actions_screen") {
+                            ActionsScreen()
                         }
                     }
                 }
