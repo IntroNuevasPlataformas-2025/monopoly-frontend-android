@@ -95,6 +95,8 @@ fun JoinScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
+                    navController.navigate("actions_screen")
+                    /*
                     if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
                         WebSocketClient.connect{ message ->
                             scope.launch(Dispatchers.Main) {
@@ -116,6 +118,7 @@ fun JoinScreen(navController: NavHostController) {
                             playerName.value,
                             gameId.value)
                     }
+                     */
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
