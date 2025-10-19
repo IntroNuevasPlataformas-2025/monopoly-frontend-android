@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -37,11 +39,6 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class) // TopBar y Scaffold
 @Composable
 fun ActionsScreen() {
-    // Estado para el dialogo de confirmacion
-    var showAnimation by remember { mutableStateOf(false) }
-
-    // CAMBIO: Envolver en un box para superponer
-    Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
                 // BarraSuperior (TopAppBar)
@@ -57,88 +54,113 @@ fun ActionsScreen() {
                 modifier = Modifier
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.weight(1f)) // Resorte superior
+
+                // --- Seccion de Acciones Comunes ---
                 Text(
                     text = "Acciones comunes",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
-
-                // Form para Pagar a Jugador
-                PayPlayerForm(onPayClicked = {
-                    showAnimation = true
-                })
-
-                Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
-
-                Text(
-                    text = "Manejar Propiedades",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Box(
+                    contentAlignment = Alignment.Center
                 ) {
-                    SecondaryActionButton(text = "Construir Casa/Hotel") {
-                        Log.d(
-                            "ActionsScreen",
-                            "Boton presionado: CONSTRUIR CASA"
+                    // Estado para el dialogo de confirmacion
+                    var showAnimation by remember { mutableStateOf(false) }
+                    Column(
+                        modifier = Modifier.widthIn(max = 300.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Form para Pagar a Jugador
+                        PayPlayerForm(onPayClicked = {
+                            showAnimation = true
+                        })
+                    }
+
+                    // NUEVO: Animacion de exito
+                    TransactionSuccessAnimation(
+                        visible = showAnimation,
+                        onAnimationFinished = {
+                            showAnimation = false // <- Animation finished
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 15.dp) // Ajuste para centrarlo en Spacer
+                    )
+                }
+
+
+                // --- Resorte Intermedio ---
+                // Se expande para tomar todo el espacio sobrante
+                Spacer(modifier = Modifier.weight(1f)) // Espacio entre secciones
+
+                // Botones secundarios
+                Column(
+                    modifier = Modifier.widthIn(max = 400.dp),
+                ){
+                    Text(
+                        text = "Manejar Propiedades",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SecondaryActionButton(
+                            text = "Construir Casa/Hotel",
+                            onClick = {
+                                Log.d(
+                                    "ActionsScreen",
+                                    "Boton presionado: CONSTRUIR CASA/HOTEL"
+                                )},
+                            modifier = Modifier.weight(1f)
+                        )
+                        SecondaryActionButton(
+                            text = "Hipotecar",
+                            onClick = { Log.d("ActionsScreen", "Boton presionado: HIPOTECAR")},
+                            modifier = Modifier.weight(1f)
+                        )
+                        SecondaryActionButton(
+                            text = "Deshipotecar",
+                            onClick = { Log.d("ActionsScreen", "Boton presionado: DESHIPOTECAR")},
+                            modifier = Modifier.weight(1f)
                         )
                     }
-                    SecondaryActionButton(text = "Hipotecar Propiedad") {
-                        Log.d(
-                            "ActionsScreen",
-                            "Boton presionado: HIPOTECAR PROPIEDAD"
+
+                    Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
+
+                    Text(
+                        text = "Eventos del juego",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SecondaryActionButton(
+                            text = "Arca Comunal",
+                            onClick = { Log.d("ActionsScreen", "Boton presionado: ARCA COMUNAL")},
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                    SecondaryActionButton(text = "Deshipotecar Propiedad") {
-                        Log.d(
-                            "ActionsScreen",
-                            "Boton presionado: DESHIPOTECAR PROPIEDAD"
+                        SecondaryActionButton(
+                            text = "Casualidad",
+                            onClick = { Log.d("ActionsScreen", "Boton presionado: CASUALIDAD")},
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp)) // Espacio entre secciones
 
-                Text(
-                    text = "Eventos del juego",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    SecondaryActionButton(text = "Arca comunal") {
-                        Log.d(
-                            "ActionsScreen",
-                            "Boton presionado: ARCA COMUNAL"
-                        )
-                    }
-                    SecondaryActionButton(text = "Casualidad") {
-                        Log.d(
-                            "ActionsScreen",
-                            "Boton presionado: CASUALIDAD"
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp)) // Espacio final
+                Spacer(modifier = Modifier.height(24.dp)) // Espacio final
 
             }
         }
 
-        // NUEVO: Animacion de exito
-        TransactionSuccessAnimation(
-            visible = showAnimation,
-            onAnimationFinished = {
-                showAnimation = false // <- Animation finished
-            },
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,7 +171,7 @@ fun PayPlayerForm(
     var selectedPlayer by remember { mutableStateOf("Select Player") }
     var amount by remember { mutableStateOf("")}
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    val players = listOf("Plater 2", "Player 3", "The Banker") // Datos de ejemplo
+    val players = listOf("Player 2", "Player 3", "The Banker") // Datos de ejemplo
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -192,7 +214,7 @@ fun PayPlayerForm(
         )
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(36.dp))
 
     // Boton principal
     Button(
@@ -212,10 +234,14 @@ fun PayPlayerForm(
  Componente para botones secundarios (reutilizable)
  */
 @Composable
-fun SecondaryActionButton(text: String, onClick: () -> Unit) {
+fun SecondaryActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         // Colores de tema adaptables
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
