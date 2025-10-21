@@ -94,7 +94,7 @@ fun ActionsScreen() {
 
 
                 // --- Resorte Intermedio ---
-                // Se expande para tomar todo el espacio sobrante
+                // Se expande para tomar el espacio sobrante
                 Spacer(modifier = Modifier.weight(1f)) // Espacio entre secciones
 
                 // Botones secundarios
