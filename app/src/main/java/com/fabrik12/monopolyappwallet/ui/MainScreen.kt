@@ -2,6 +2,7 @@ package com.fabrik12.monopolyappwallet.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -30,44 +32,55 @@ fun MainScreen(gameId: String?) {
 
     Scaffold(
         bottomBar = {
-            val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination
+            // Crear el MonopolyBottomNavigation
+            NavigationBar {
+                val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
 
-            screens.forEach { screen ->
-                NavigationBarItem(
-                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                    onClick = {
-                        innerNavController.navigate(screen.route) {
-                            // Acceder al destino inicial del gráfico para evitar acumular
-                            // una gran cantidad de destinos en la pila de tareas
-                            // a medida que los usuarios seleccionan elementos.
-                            popUpTo(innerNavController.graph.findStartDestination().id) {
-                                saveState = true
+                screens.forEach { screen ->
+                    // Verificar estado de seleccion
+                    NavigationBarItem(
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        onClick = {
+                            innerNavController.navigate(screen.route) {
+                                // Acceder al destino inicial del gráfico para evitar acumular
+                                // una gran cantidad de destinos en la pila de tareas
+                                // a medida que los usuarios seleccionan elementos.
+                                popUpTo(innerNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true // Evitar copias del mismo destino
+                                restoreState = true // Restaurar el estado al volver
                             }
-                            launchSingleTop = true // Evitar copias del mismo destino
-                            restoreState = true // Restaurar el estado al volver
-                        }
-                    },
-                    icon = { Icon(imageVector = screen.icon, contentDescription = screen.label) },
-                    label = { Text(text = screen.label) }
-                )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = screen.icon,
+                                contentDescription = screen.label
+                            )
+                        },
+                        label = { Text(text = screen.label) }
+                    )
+                }
             }
         }
 
     ) { innerPadding ->
+        // Configurar el NavHost
         NavHost(
             navController = innerNavController,
-            startDestination = Screen.Game.route,
+            startDestination = Screen.Game.route, // Empezar en GameScreen 'pantalla de juego'
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Game.route) {
+                // Pasar el gameId que necesita
                 GameScreen(gameId = gameId)
-            }
-            composable(Screen.Actions.route) {
-                ActionsScreen()
             }
             composable(Screen.Properties.route) {
                 PropertiesScreen()
+            }
+            composable(Screen.Actions.route) {
+                ActionsScreen()
             }
         }
     }
