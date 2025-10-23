@@ -43,10 +43,6 @@ fun ActionsScreen() {
             topBar = {
                 // BarraSuperior (TopAppBar)
                 TopAppBar(title = { Text("Acciones del Juego") })
-            },
-            bottomBar = {
-                // Barra de Navegacion (inferior)
-                Text("Barra de Navegacion Inferior (proto)")
             }
         ) { innerPadding ->
             // Contenido de la pantalla

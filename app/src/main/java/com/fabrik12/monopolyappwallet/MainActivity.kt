@@ -18,6 +18,7 @@ import com.fabrik12.monopolyappwallet.ui.GameScreen
 import com.fabrik12.monopolyappwallet.ui.theme.MonopolyAppWalletTheme
 
 import com.fabrik12.monopolyappwallet.ui.JoinScreen
+import com.fabrik12.monopolyappwallet.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,12 +35,9 @@ class MainActivity : ComponentActivity() {
                         composable("join_screen") {
                             JoinScreen(navController = navController)
                         }
-                        composable("game_screen/{gameId}") { backStackEntry ->
+                        composable("main_screen/{gameId}") { backStackEntry ->
                             val gameId = backStackEntry.arguments?.getString("gameId")
-                            GameScreen(gameId = gameId)
-                        }
-                        composable("actions_screen") {
-                            ActionsScreen()
+                            MainScreen(gameId = gameId) // Llamada al nuevo composable
                         }
                     }
                 }

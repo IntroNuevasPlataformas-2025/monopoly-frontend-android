@@ -22,10 +22,6 @@ fun PropertiesScreen() {
         topBar = {
             TopAppBar(title = { Text("Propiedades del Tablero") })
         },
-        bottomBar = {
-            // Barra de Navegacion (inferior)
-            Text("Barra de Navegacion Inferior (proto)")
-        }
     ) { innerPadding ->
         // Contenido de la pantalla
 

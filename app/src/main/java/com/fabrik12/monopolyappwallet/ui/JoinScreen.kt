@@ -95,7 +95,8 @@ fun JoinScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    navController.navigate("actions_screen")
+                    val receivedGameId = "Fabricio123"
+                    navController.navigate("main_screen/$receivedGameId")
                     /*
                     if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
                         WebSocketClient.connect{ message ->
@@ -107,9 +108,7 @@ fun JoinScreen(navController: NavHostController) {
                                     val payload = jsonResponse.getJSONObject("payload")
                                     val receivedGameId = payload.getString("gameId")
 
-                                    // Navegacion (CAMBIO: para probar la pantalla de Acciones)
-                                    //navController.navigate("game_screen/$receivedGameId")
-                                    navController.navigate("actions_screen")
+                                    navController.navigate("main_screen/$receivedGameId")
                                 }
                             }
                         }
