@@ -24,7 +24,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  *
  * @param context Contexto de la aplicacion. Para acceder a DataStore.
  */
-class SettingsDataStore(private val context: Context) {
+class SettingsRepository(private val context: Context) {
     // Definicion de Claves y Valores
 
     // Guardar preferencias de tema
