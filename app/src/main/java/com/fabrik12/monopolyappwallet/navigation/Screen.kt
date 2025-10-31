@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
@@ -25,5 +26,11 @@ sealed class Screen(
         route = "properties_screen",
         label = "Propiedades",
         icon = Icons.Default.List
+    )
+
+    object Settings: Screen(
+        route = "settings_screen",
+        label = "Settings",
+        icon = Icons.Default.Settings //Engranaje
     )
 }

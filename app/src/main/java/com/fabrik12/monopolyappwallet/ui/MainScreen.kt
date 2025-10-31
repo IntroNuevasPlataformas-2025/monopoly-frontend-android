@@ -27,7 +27,8 @@ fun MainScreen(gameId: String?) {
     val screens = listOf(
         Screen.Game,
         Screen.Actions,
-        Screen.Properties
+        Screen.Properties,
+        Screen.Settings
     )
 
     Scaffold(
@@ -81,6 +82,9 @@ fun MainScreen(gameId: String?) {
             }
             composable(Screen.Actions.route) {
                 ActionsScreen()
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen()
             }
         }
     }
