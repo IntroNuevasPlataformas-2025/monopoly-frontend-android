@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Obtener la instancia del view model
+            // Obtener o crear la instancia del view model
             val settingsViewModel: SettingsViewModel = viewModel()
             val themePreference by settingsViewModel.themePreference.collectAsState()
 

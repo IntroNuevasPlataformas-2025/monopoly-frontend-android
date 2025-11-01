@@ -54,7 +54,7 @@ class SettingsRepository(private val context: Context) {
         }
 
     // Funcion para Guardar preferencia
-    suspend fun saveThemePreference(theme: String) {
+    suspend fun saveThemePreference(theme: String) { // suspend para usar corrutinas
         context.dataStore.edit { preferences ->
             preferences[Keys.THEME_KEY] = theme
         }
