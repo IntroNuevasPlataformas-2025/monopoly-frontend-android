@@ -24,16 +24,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fabrik12.monopolyappwallet.data.Property
+import com.fabrik12.monopolyappwallet.data.PropertyEntity
 import com.fabrik12.monopolyappwallet.data.PropertyColors
 
 /**
  * Componente que muestra un elemento de propiedad.
  *
- * @param property La propiedad a mostrar
+ * @param propertyEntity La propiedad a mostrar
  */
 @Composable
-fun PropertyItem(property: Property, modifier: Modifier = Modifier) {
+fun PropertyItem(propertyEntity: PropertyEntity, modifier: Modifier = Modifier) {
     // Construccion de la tarjeta de propiedad
     Card(
         modifier = modifier
@@ -47,7 +47,7 @@ fun PropertyItem(property: Property, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Color Box
-            PropertyAvatar(property = property)
+            PropertyAvatar(propertyEntity = propertyEntity)
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -55,21 +55,21 @@ fun PropertyItem(property: Property, modifier: Modifier = Modifier) {
             // Columna para apilar elementos verticalmente
             Column(modifier = Modifier.weight(1f)) {
                 Text (
-                    text = property.name,
+                    text = propertyEntity.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = property.status,
+                    text = propertyEntity.status,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
 
-            if (property.price > 0) {
+            if (propertyEntity.price > 0) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "$${property.price}",
+                    text = "$${propertyEntity.price}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -80,18 +80,18 @@ fun PropertyItem(property: Property, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PropertyAvatar(property: Property, modifier: Modifier = Modifier) {
+fun PropertyAvatar(propertyEntity: PropertyEntity, modifier: Modifier = Modifier) {
     val size = 56.dp
-    if (property.groupColor != Color.Transparent) {
+    if (propertyEntity.groupColor != Color.Transparent) {
         Box(
             modifier = modifier
                 .size(size)
-                .background(property.groupColor, RoundedCornerShape(8.dp))
+                .background(propertyEntity.groupColor, RoundedCornerShape(8.dp))
         )
     } else {
         Icon(
             imageVector = Icons.Default.QuestionMark,
-            contentDescription = property.name,
+            contentDescription = propertyEntity.name,
             modifier = modifier.size(size).padding(8.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -103,7 +103,7 @@ fun PropertyAvatar(property: Property, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun PropertyItemPreview() {
-    val sampleProperty = Property(
+    val samplePropertyEntity = PropertyEntity(
         id = 1,
         name = "Av. Mediterráneo",
         price = 60,
@@ -111,14 +111,14 @@ fun PropertyItemPreview() {
         status = "Propiedad Tuya"
     )
     Box(modifier = Modifier.padding(8.dp)) {
-        PropertyItem(property = sampleProperty)
+        PropertyItem(propertyEntity = samplePropertyEntity)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PropertyItemSpecialPreview() {
-    val sampleSpecial = Property(
+    val sampleSpecial = PropertyEntity(
         id = 2,
         name = "Arca Comunal",
         price = 0,
@@ -126,6 +126,6 @@ fun PropertyItemSpecialPreview() {
         status = "Toma una carta"
     )
     Box(modifier = Modifier.padding(8.dp)) {
-        PropertyItem(property = sampleSpecial)
+        PropertyItem(propertyEntity = sampleSpecial)
     }
 }

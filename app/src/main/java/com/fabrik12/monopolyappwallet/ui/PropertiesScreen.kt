@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fabrik12.monopolyappwallet.data.mockPropertyList
+import com.fabrik12.monopolyappwallet.data.mockPropertyEntityLists
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,8 +28,8 @@ fun PropertiesScreen() {
         LazyColumn(
             modifier = Modifier.padding(innerPadding)
         ) {
-            items(mockPropertyList) { property ->
-                PropertyItem(property = property)
+            items(mockPropertyEntityLists) { property ->
+                PropertyItem(propertyEntity = property)
             }
         }
         Spacer(modifier = Modifier.height(24.dp)) // Espacio final
