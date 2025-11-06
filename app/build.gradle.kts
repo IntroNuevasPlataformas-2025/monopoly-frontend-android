@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -43,7 +43,7 @@ android {
 dependencies {
     val lifecycle_version = "2.8.7"
     // Room Database
-    val room_version = "2.6.1"
+    val room_version = "2.7.1"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,7 +66,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.okhttp)
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
-    implementation("androidx.compose.material3:material3:1.4.0")
+    //implementation("androidx.compose.material3:material3:1.4.0")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
