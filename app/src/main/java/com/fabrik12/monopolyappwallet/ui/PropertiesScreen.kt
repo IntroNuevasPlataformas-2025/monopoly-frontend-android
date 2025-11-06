@@ -13,13 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fabrik12.monopolyappwallet.data.PropertyEntity
 import com.fabrik12.monopolyappwallet.data.mockPropertyEntityList
 import com.fabrik12.monopolyappwallet.viewmodel.PropertiesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertiesScreen() {
     // Obtener el viewModel
@@ -28,7 +29,18 @@ fun PropertiesScreen() {
     // Observar los cambios en la lista de propiedades
     val propertiesList by viewModel.properties.collectAsState()
 
+    // Solo pasar el estado
+    PropertiesContent(propertiesList = propertiesList)
 
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PropertiesContent(
+    propertiesList: List<PropertyEntity>,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Propiedades del Tablero") })
@@ -47,9 +59,15 @@ fun PropertiesScreen() {
 
     }
 }
+// --- Previsualización ---
+@Preview(showBackground = true)
+@Composable
+fun PropertiesScreenPreview() {
+    // Datos mock rápidos solo para el preview
+    val previewData = listOf(
+        PropertyEntity(1, "Av. Mediterráneo", 60, Color(0xFF955438), "Sin dueño"),
+        PropertyEntity(2, "Av. Báltica", 60, Color(0xFF955438), "Hipotecada")
+    )
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PropertiesScreenPreview() {
-//    PropertiesScreen()
-//}
+    PropertiesContent(propertiesList = previewData)
+}
