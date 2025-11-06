@@ -15,6 +15,6 @@ class ColorConverter {
 
     @TypeConverter
     fun toColor(value: Long): Color {
-        return Color(value.toLong())
+        return Color(value.toULong())
     }
 }

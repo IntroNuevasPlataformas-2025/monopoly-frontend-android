@@ -10,14 +10,25 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fabrik12.monopolyappwallet.data.mockPropertyEntityLists
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fabrik12.monopolyappwallet.data.mockPropertyEntityList
+import com.fabrik12.monopolyappwallet.viewmodel.PropertiesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertiesScreen() {
+    // Obtener el viewModel
+    val viewModel: PropertiesViewModel = viewModel()
+
+    // Observar los cambios en la lista de propiedades
+    val propertiesList by viewModel.properties.collectAsState()
+
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Propiedades del Tablero") })
@@ -28,7 +39,7 @@ fun PropertiesScreen() {
         LazyColumn(
             modifier = Modifier.padding(innerPadding)
         ) {
-            items(mockPropertyEntityLists) { property ->
+            items(propertiesList) { property ->
                 PropertyItem(propertyEntity = property)
             }
         }
@@ -37,8 +48,8 @@ fun PropertiesScreen() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PropertiesScreenPreview() {
-    PropertiesScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PropertiesScreenPreview() {
+//    PropertiesScreen()
+//}

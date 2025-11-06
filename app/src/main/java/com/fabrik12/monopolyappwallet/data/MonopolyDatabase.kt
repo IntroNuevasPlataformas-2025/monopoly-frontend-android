@@ -27,7 +27,7 @@ abstract class MonopolyDatabase : RoomDatabase() {
                     context.applicationContext,
                     MonopolyDatabase::class.java,
                     "monopoly_database"
-                ).fallbackToDestructiveMigration()
+                ).fallbackToDestructiveMigration(true)
                     .addCallback(DatabaseSeeder(context))
                     .build()
                 INSTANCE = instance
