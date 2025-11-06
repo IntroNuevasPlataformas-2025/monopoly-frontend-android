@@ -17,7 +17,7 @@ object PropertyColors {
 }
 
 // Lista de propiedades de maqueta (Mock Data)
-val mockPropertyEntityLists = listOf(
+val mockPropertyEntityList = listOf(
     PropertyEntity(1, "Av. Mediterráneo", 60, PropertyColors.BROWN, "Sin dueño"),
     PropertyEntity(2, "Arca Comunal", 0, Color.Transparent, "Toma una carta"),
     PropertyEntity(3, "Av. Báltica", 60, PropertyColors.BROWN, "Hipotecada"),
