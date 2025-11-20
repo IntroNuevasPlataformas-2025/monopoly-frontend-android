@@ -31,3 +31,29 @@ val MutedLight = Color(0xFFa3a3a3)
 val MutedDark = Color(0xFF8c8c8c)
 val BorderLight = Color(0xFFe5e5e5)
 val BorderDark = Color(0xFF3c3c3c)
+
+// Action Colors (Tailwind-like)
+val ActionBlueBgLight = Color(0xFFDBEAFE)
+val ActionBlueTextLight = Color(0xFF3B82F6)
+val ActionBlueBgDark = Color(0x801E3A8A) // 50% opacity approximation
+val ActionBlueTextDark = Color(0xFF60A5FA)
+
+val ActionGreenBgLight = Color(0xFFDCFCE7)
+val ActionGreenTextLight = Color(0xFF22C55E)
+val ActionGreenBgDark = Color(0x8014532D)
+val ActionGreenTextDark = Color(0xFF4ADE80)
+
+val ActionYellowBgLight = Color(0xFFFEF9C3)
+val ActionYellowTextLight = Color(0xFFEAB308)
+val ActionYellowBgDark = Color(0x80713F12)
+val ActionYellowTextDark = Color(0xFFFACC15)
+
+val ActionRedBgLight = Color(0xFFFEE2E2)
+val ActionRedTextLight = Color(0xFFEF4444)
+val ActionRedBgDark = Color(0x807F1D1D)
+val ActionRedTextDark = Color(0xFFF87171)
+
+val ActionPurpleBgLight = Color(0xFFF3E8FF)
+val ActionPurpleTextLight = Color(0xFFA855F7)
+val ActionPurpleBgDark = Color(0x80581C87)
+val ActionPurpleTextDark = Color(0xFFC084FC)

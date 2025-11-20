@@ -12,11 +12,14 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fabrik12.monopolyappwallet.navigation.Screen
+import com.fabrik12.monopolyappwallet.ui.theme.Primary
+import com.fabrik12.monopolyappwallet.ui.theme.MutedLight
 
 @Composable
 fun MainScreen(gameId: String?) {
@@ -24,24 +27,29 @@ fun MainScreen(gameId: String?) {
     val innerNavController = rememberNavController()
 
     // Lista de pantallas para barra inferior
+    // Updated order based on design reference: Home, Properties, Actions, Settings
     val screens = listOf(
-        Screen.Game,
-        Screen.Actions,
-        Screen.Properties,
+        Screen.Game, // Home
+        Screen.Properties, // Foundation
+        Screen.Actions, // SwapHoriz
         Screen.Settings
     )
 
     Scaffold(
         bottomBar = {
             // Crear el MonopolyBottomNavigation
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color.White // Or match theme surface
+            ) {
                 val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
                 screens.forEach { screen ->
                     // Verificar estado de seleccion
+                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
                     NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = selected,
                         onClick = {
                             innerNavController.navigate(screen.route) {
                                 // Acceder al destino inicial del gráfico para evitar acumular
@@ -60,7 +68,14 @@ fun MainScreen(gameId: String?) {
                                 contentDescription = screen.label
                             )
                         },
-                        label = { Text(text = screen.label) }
+                        label = { Text(text = screen.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Primary,
+                            selectedTextColor = Primary,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = MutedLight,
+                            unselectedTextColor = MutedLight
+                        )
                     )
                 }
             }

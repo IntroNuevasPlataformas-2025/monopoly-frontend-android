@@ -2,9 +2,11 @@ package com.fabrik12.monopolyappwallet.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Foundation
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
@@ -14,23 +16,22 @@ sealed class Screen(
 ) {
     object Game: Screen(
         route = "game_screen",
-        label = "Juego",
+        label = "Home",
         icon = Icons.Default.Home
-    )
-    object Actions: Screen(
-        route = "actions_screen",
-        label = "Acciones",
-        icon = Icons.Default.PlayCircle
     )
     object Properties: Screen(
         route = "properties_screen",
         label = "Propiedades",
-        icon = Icons.AutoMirrored.Filled.List
+        icon = Icons.Default.Foundation
     )
-
+    object Actions: Screen(
+        route = "actions_screen",
+        label = "Acciones",
+        icon = Icons.Default.SwapHoriz
+    )
     object Settings: Screen(
         route = "settings_screen",
         label = "Settings",
-        icon = Icons.Default.Settings //Engranaje
+        icon = Icons.Default.Settings
     )
 }
