@@ -1,137 +1,207 @@
 package com.fabrik12.monopolyappwallet.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.MeetingRoom
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.fabrik12.monopolyappwallet.ui.theme.BrandGray
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.json.JSONObject
+import com.fabrik12.monopolyappwallet.ui.theme.*
 
 @Composable
 fun JoinScreen(navController: NavHostController) {
-    val scope = rememberCoroutineScope()
-    // Memoria para campo de texto
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
+    val isDarkTheme = isSystemInDarkTheme()
 
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        // El color de fondo ahora depende del tema
-        focusedContainerColor = if (isSystemInDarkTheme()) {
-            Color.White.copy(alpha = 0.1f) // gris muy sutil para el modo oscuro
-        } else {
-            BrandGray.copy(alpha = 0.1f) // Gris sutil para el modo claro
-        },
-        unfocusedContainerColor = if (isSystemInDarkTheme()) {
-            Color.White.copy(alpha = 0.1f)
-        } else {
-            BrandGray.copy(alpha = 0.1f)
-        },
-        // Asegurar constraste entre el texto y el borde
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        // Borde usando el color primario del tema actual
-        unfocusedBorderColor = Color.Transparent,
-        focusedBorderColor = MaterialTheme.colorScheme.primary
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val colorScheme = MaterialTheme.colorScheme
+
+    val backgroundColor = colorScheme.background
+    val surfaceColor = colorScheme.surface
+    val textColor = colorScheme.onBackground
+    val mutedColor = if (isDarkTheme) MutedDark else MutedLight // Mantener muted personalizado para mejor contraste
+    val borderColor = if (isDarkTheme) BorderDark else BorderLight // Mantener border personalizado
+    val iconPrimary = colorScheme.primary
+    val iconSecondary = if (isDarkTheme) MutedDark else MutedLight // Gris para claro, gris oscuro para dark
+
+    Surface(
+        color = backgroundColor,
+        modifier = Modifier.fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-        Column(
-            modifier = Modifier.widthIn(max = 500.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
         ) {
-            // Texto de bienvenida
-            Text(
-                text = "Crea o Unete a una partida",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Campo de texto para el nombre del Jugador
-            OutlinedTextField(
-                value = playerName.value,
-                onValueChange = { playerName.value = it },
-                label = { Text("Tu Nombre") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Campo de texto para el ID de partida
-            OutlinedTextField(
-                value = gameId.value,
-                onValueChange = { gameId.value = it },
-                label = { Text("ID de la Partida") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = textFieldColors
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val receivedGameId = "Fabricio123"
-                    navController.navigate("main_screen/$receivedGameId")
-                    /*
-                    if (playerName.value.isNotBlank() && gameId.value.isNotBlank()) {
-                        WebSocketClient.connect{ message ->
-                            scope.launch(Dispatchers.Main) {
-                                val jsonResponse = JSONObject(message)
-                                val type = jsonResponse.getString("type")
-
-                                if (type == "GAME_CREATED") {
-                                    val payload = jsonResponse.getJSONObject("payload")
-                                    val receivedGameId = payload.getString("gameId")
-
-                                    navController.navigate("main_screen/$receivedGameId")
-                                }
-                            }
-                        }
-                        Thread.sleep(500) // Esperar 0.5 segundos
-                        WebSocketClient.sendMessage(
-                            playerName.value,
-                            gameId.value)
-                    }
-                     */
-                },
-                modifier = Modifier.fillMaxWidth(),
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("CREAR PARTIDA")
+                Icon(
+                    imageVector = Icons.Default.AttachMoney, // Icono de billete, más temático para Monopoly
+                    contentDescription = "Monopoly Icon",
+                    tint = iconPrimary,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(bottom = 16.dp)
+                )
+
+                Text(
+                    text = "Crear o Unirse a una Partida",
+                    style = TextStyle(
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+
+                OutlinedTextField(
+                    value = playerName.value,
+                    onValueChange = { playerName.value = it },
+                    placeholder = { Text("Tu nombre", color = mutedColor) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Person Icon",
+                            tint = iconSecondary // Gris en claro, gris oscuro en dark
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = iconPrimary,
+                        unfocusedBorderColor = borderColor,
+                        unfocusedContainerColor = surfaceColor,
+                        focusedContainerColor = surfaceColor,
+                        unfocusedTextColor = textColor,
+                        focusedTextColor = textColor,
+                    ),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = gameId.value,
+                    onValueChange = { gameId.value = it },
+                    placeholder = { Text("Nombre o ID de la partida", color = mutedColor) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.MeetingRoom,
+                            contentDescription = "Meeting Room Icon",
+                            tint = iconSecondary // Gris en claro, gris oscuro en dark
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = iconPrimary,
+                        unfocusedBorderColor = borderColor,
+                        unfocusedContainerColor = surfaceColor,
+                        focusedContainerColor = surfaceColor,
+                        unfocusedTextColor = textColor,
+                        focusedTextColor = textColor,
+                    ),
+                    singleLine = true
+                )
+
+                Button(
+                    onClick = {
+                        if (gameId.value.isNotBlank()) {
+                            navController.navigate("main_screen/${gameId.value}")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = iconPrimary,
+                        contentColor = colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        "Crear Partida",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        if (gameId.value.isNotBlank()) {
+                            navController.navigate("main_screen/${gameId.value}")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        width = 2.dp,
+                        brush = androidx.compose.ui.graphics.SolidColor(iconPrimary)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = iconPrimary
+                    )
+                ) {
+                    Text(
+                        "Unirse",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Light Mode")
 @Composable
-fun JoinScreenPreview() {
-    val navController = rememberNavController()
-    JoinScreen(navController = navController)
+fun JoinScreenPreviewLight() {
+    MonopolyAppWalletTheme(darkTheme = false, dynamicColor = false) {
+        JoinScreen(navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Dark Mode")
+@Composable
+fun JoinScreenPreviewDark() {
+    MonopolyAppWalletTheme(darkTheme = true, dynamicColor = false) {
+        JoinScreen(navController = rememberNavController())
+    }
 }

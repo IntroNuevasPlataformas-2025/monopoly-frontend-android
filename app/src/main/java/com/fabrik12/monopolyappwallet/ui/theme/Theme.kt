@@ -13,21 +13,21 @@ import androidx.compose.ui.platform.LocalContext
 
 
 private val DarkColorScheme = darkColorScheme(
-    primary = BrandBlueLight,      // Un azul más claro para que resalte en fondos oscuros
-    background = BrandDarkText,    // Usamos el color de texto oscuro como fondo
-    onBackground = Color.White,    // Texto blanco sobre fondo oscuro
-    surface = BrandDarkText,
-    onSurface = Color.White,
-    onPrimary = BrandDarkText      // Texto oscuro sobre el botón azul claro
+    primary = PrimaryDarker,           // Verde oscuro como color principal
+    background = BackgroundDark,       // Fondo oscuro
+    onBackground = TextDark,           // Texto claro sobre fondo oscuro
+    surface = SurfaceDark,             // Superficies oscuras
+    onSurface = TextDark,              // Texto claro sobre superficies
+    onPrimary = Color.White            // Texto blanco sobre botón verde
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = BrandBlue,           // El color principal para botones
-    background = Color.White,      // Fondo blanco estándar
-    onBackground = BrandDarkText,  // El color del título sobre el fondo blanco
-    surface = Color.White,
-    onSurface = BrandDarkText,     // Color de texto sobre superficies
-    onPrimary = Color.White        // Texto blanco sobre el botón azul
+    primary = Primary,                 // Verde como color principal
+    background = BackgroundLight,      // Fondo claro
+    onBackground = TextLight,          // Texto oscuro sobre fondo claro
+    surface = SurfaceLight,            // Superficies claras
+    onSurface = TextLight,             // Texto oscuro sobre superficies
+    onPrimary = Color.White            // Texto blanco sobre botón verde
 )
 
     /* Other default colors to override
@@ -43,8 +43,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun MonopolyAppWalletTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Desactivado por defecto para usar la paleta personalizada
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
