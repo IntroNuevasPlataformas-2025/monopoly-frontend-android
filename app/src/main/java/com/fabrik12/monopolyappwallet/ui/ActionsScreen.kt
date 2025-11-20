@@ -286,7 +286,7 @@ fun ActionCard(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = title,
                 tint = iconColor,
                 modifier = Modifier.size(24.dp)
             )
@@ -327,7 +327,7 @@ fun PayPlayerForm(
     onPayClicked: () -> Unit
 ){
     var selectedPlayer by remember { mutableStateOf("Select Player") }
-    var amount by remember { mutableStateOf("")}
+    var amountToPay by remember { mutableStateOf("")}
     var isDropdownExpanded by remember { mutableStateOf(false) }
     val players = listOf("Player 2", "Player 3", "The Banker") // Datos de ejemplo
 
@@ -369,8 +369,8 @@ fun PayPlayerForm(
                 }
             }
             OutlinedTextField(
-                value = amount,
-                onValueChange = { amount = it },
+                value = amountToPay,
+                onValueChange = { amountToPay = it },
                 label = { Text("Amount") },
                 modifier = Modifier.weight(0.7f)
             )
@@ -381,7 +381,7 @@ fun PayPlayerForm(
         // Boton principal
         Button(
             onClick = {
-                Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amount")
+                Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amountToPay")
                 onPayClicked()
             },
             modifier = Modifier.fillMaxWidth()

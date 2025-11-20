@@ -18,8 +18,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fabrik12.monopolyappwallet.navigation.Screen
-import com.fabrik12.monopolyappwallet.ui.theme.Primary
 import com.fabrik12.monopolyappwallet.ui.theme.MutedLight
+import com.fabrik12.monopolyappwallet.ui.theme.MutedDark
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun MainScreen(gameId: String?) {
@@ -35,11 +36,15 @@ fun MainScreen(gameId: String?) {
         Screen.Settings
     )
 
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val colorScheme = MaterialTheme.colorScheme
+    val unselectedColor = if (isDarkTheme) MutedDark else MutedLight
+
     Scaffold(
         bottomBar = {
             // Crear el MonopolyBottomNavigation
             NavigationBar(
-                containerColor = Color.White // Or match theme surface
+                containerColor = colorScheme.surface // Fondo dinámico según tema
             ) {
                 val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
@@ -70,11 +75,11 @@ fun MainScreen(gameId: String?) {
                         },
                         label = { Text(text = screen.label) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Primary,
-                            selectedTextColor = Primary,
+                            selectedIconColor = colorScheme.primary,
+                            selectedTextColor = colorScheme.primary,
                             indicatorColor = Color.Transparent,
-                            unselectedIconColor = MutedLight,
-                            unselectedTextColor = MutedLight
+                            unselectedIconColor = unselectedColor,
+                            unselectedTextColor = unselectedColor
                         )
                     )
                 }
