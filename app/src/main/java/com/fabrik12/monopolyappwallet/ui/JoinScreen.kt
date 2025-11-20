@@ -6,7 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -32,149 +32,159 @@ fun JoinScreen(navController: NavHostController) {
     val gameId = remember { mutableStateOf("") }
     val isDarkTheme = isSystemInDarkTheme()
 
-    val backgroundColor = if (isDarkTheme) BackgroundDark else BackgroundLight
-    val surfaceColor = if (isDarkTheme) SurfaceDark else SurfaceLight
-    val textColor = if (isDarkTheme) TextDark else TextLight
-    val mutedColor = if (isDarkTheme) MutedDark else MutedLight
-    val borderColor = if (isDarkTheme) BorderDark else BorderLight
+    val colorScheme = MaterialTheme.colorScheme
+
+    val backgroundColor = colorScheme.background
+    val surfaceColor = colorScheme.surface
+    val textColor = colorScheme.onBackground
+    val mutedColor = if (isDarkTheme) MutedDark else MutedLight // Mantener muted personalizado para mejor contraste
+    val borderColor = if (isDarkTheme) BorderDark else BorderLight // Mantener border personalizado
+    val iconPrimary = colorScheme.primary
+    val iconSecondary = if (isDarkTheme) MutedDark else MutedLight // Gris para claro, gris oscuro para dark
 
     Surface(
         color = backgroundColor,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .imePadding()
         ) {
-            Icon(
-                imageVector = Icons.Default.Casino,
-                contentDescription = "Casino Icon",
-                tint = Primary,
+            Column(
                 modifier = Modifier
-                    .size(80.dp)
-                    .padding(bottom = 16.dp)
-            )
-
-            Text(
-                text = "Crear o Unirse a una Partida",
-                style = TextStyle(
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = textColor,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            OutlinedTextField(
-                value = playerName.value,
-                onValueChange = { playerName.value = it },
-                placeholder = { Text("Tu nombre", color = mutedColor) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Person Icon",
-                        tint = mutedColor
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    unfocusedBorderColor = borderColor,
-                    unfocusedContainerColor = surfaceColor,
-                    focusedContainerColor = surfaceColor,
-                    unfocusedTextColor = textColor,
-                    focusedTextColor = textColor,
-                ),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = gameId.value,
-                onValueChange = { gameId.value = it },
-                placeholder = { Text("Nombre o ID de la partida", color = mutedColor) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.MeetingRoom,
-                        contentDescription = "Meeting Room Icon",
-                        tint = mutedColor
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    unfocusedBorderColor = borderColor,
-                    unfocusedContainerColor = surfaceColor,
-                    focusedContainerColor = surfaceColor,
-                    unfocusedTextColor = textColor,
-                    focusedTextColor = textColor,
-                ),
-                singleLine = true
-            )
-
-            Button(
-                onClick = {
-                    if (gameId.value.isNotBlank()) {
-                        navController.navigate("main_screen/${gameId.value}")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    contentColor = Color.White
-                )
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    "Crear Partida",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
+                Icon(
+                    imageVector = Icons.Default.AttachMoney, // Icono de billete, más temático para Monopoly
+                    contentDescription = "Monopoly Icon",
+                    tint = iconPrimary,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(bottom = 16.dp)
                 )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = {
-                    if (gameId.value.isNotBlank()) {
-                        navController.navigate("main_screen/${gameId.value}")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    width = 2.dp,
-                    brush = androidx.compose.ui.graphics.SolidColor(Primary)
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Primary
-                )
-            ) {
                 Text(
-                    "Unirse",
+                    text = "Crear o Unirse a una Partida",
                     style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(bottom = 32.dp)
                 )
+
+                OutlinedTextField(
+                    value = playerName.value,
+                    onValueChange = { playerName.value = it },
+                    placeholder = { Text("Tu nombre", color = mutedColor) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Person Icon",
+                            tint = iconSecondary // Gris en claro, gris oscuro en dark
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = iconPrimary,
+                        unfocusedBorderColor = borderColor,
+                        unfocusedContainerColor = surfaceColor,
+                        focusedContainerColor = surfaceColor,
+                        unfocusedTextColor = textColor,
+                        focusedTextColor = textColor,
+                    ),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = gameId.value,
+                    onValueChange = { gameId.value = it },
+                    placeholder = { Text("Nombre o ID de la partida", color = mutedColor) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.MeetingRoom,
+                            contentDescription = "Meeting Room Icon",
+                            tint = iconSecondary // Gris en claro, gris oscuro en dark
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = iconPrimary,
+                        unfocusedBorderColor = borderColor,
+                        unfocusedContainerColor = surfaceColor,
+                        focusedContainerColor = surfaceColor,
+                        unfocusedTextColor = textColor,
+                        focusedTextColor = textColor,
+                    ),
+                    singleLine = true
+                )
+
+                Button(
+                    onClick = {
+                        if (gameId.value.isNotBlank()) {
+                            navController.navigate("main_screen/${gameId.value}")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = iconPrimary,
+                        contentColor = colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        "Crear Partida",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        if (gameId.value.isNotBlank()) {
+                            navController.navigate("main_screen/${gameId.value}")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        width = 2.dp,
+                        brush = androidx.compose.ui.graphics.SolidColor(iconPrimary)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = iconPrimary
+                    )
+                ) {
+                    Text(
+                        "Unirse",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    )
+                }
             }
         }
     }
@@ -183,7 +193,7 @@ fun JoinScreen(navController: NavHostController) {
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun JoinScreenPreviewLight() {
-    MonopolyAppWalletTheme(darkTheme = false) {
+    MonopolyAppWalletTheme(darkTheme = false, dynamicColor = false) {
         JoinScreen(navController = rememberNavController())
     }
 }
@@ -191,7 +201,7 @@ fun JoinScreenPreviewLight() {
 @Preview(showBackground = true, name = "Dark Mode")
 @Composable
 fun JoinScreenPreviewDark() {
-    MonopolyAppWalletTheme(darkTheme = true) {
+    MonopolyAppWalletTheme(darkTheme = true, dynamicColor = false) {
         JoinScreen(navController = rememberNavController())
     }
 }
