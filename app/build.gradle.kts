@@ -73,4 +73,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+
+    // Work Manager
+    implementation(libs.androidx.work.runtime.ktx)
 }
