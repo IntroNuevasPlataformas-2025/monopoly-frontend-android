@@ -21,4 +21,17 @@ interface PropertyDao {
      */
     @Query("SELECT * FROM properties")
     fun getAllProperties(): Flow<List<PropertyEntity>>
+
+    /**
+     * @brief Obtener todas las propiedades desde la base de datos una sola vez.
+     * @return Una lista de propiedades.
+     */
+    @Query("SELECT * FROM properties")
+    suspend fun getAllPropertiesOneShot(): List<PropertyEntity>
+
+    /**
+     * @brief Actualizar una propiedad existente en la base de datos.
+     * @param property La entidad de la propiedad a actualizar.
+     */
+    suspend fun updateProperty(property: PropertyEntity)
 }
