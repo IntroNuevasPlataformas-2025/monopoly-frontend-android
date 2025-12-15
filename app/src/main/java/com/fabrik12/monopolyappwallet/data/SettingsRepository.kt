@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ class SettingsRepository(private val context: Context) {
     // Guardar preferencias de tema
     private object Keys {
         val THEME_KEY = stringPreferencesKey("theme_preference")
+        val GAME_START_TIME = longPreferencesKey("game_start_time")
     }
 
     // Posibles valores
@@ -57,6 +59,42 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveThemePreference(theme: String) { // suspend para usar corrutinas
         context.dataStore.edit { preferences ->
             preferences[Keys.THEME_KEY] = theme
+        }
+    }
+
+    // --- CRONOMETRO DE PARTIDA ---
+
+    /**
+     * Flujo que expone el tiempo de inicio de la partida.
+     * Retorna 0L si no se ha establecido.
+     */
+    val gameStartTimeFlow: Flow<Long> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[Keys.GAME_START_TIME] ?: 0L
+        }
+
+    /**
+     * Guarda el momento exacto en que inicio la partida.
+     */
+    suspend fun saveGameStartTime(startTime: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.GAME_START_TIME] = startTime
+        }
+    }
+
+    /**
+     * Borra el tiempo de inicio de la partida.
+     */
+    suspend fun clearGameStartTime() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(Keys.GAME_START_TIME)
         }
     }
 }
