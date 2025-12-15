@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,5 +34,6 @@ interface PropertyDao {
      * @brief Actualizar una propiedad existente en la base de datos.
      * @param property La entidad de la propiedad a actualizar.
      */
+    @Update
     suspend fun updateProperty(property: PropertyEntity)
 }

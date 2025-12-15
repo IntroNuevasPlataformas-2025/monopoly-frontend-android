@@ -3,11 +3,17 @@ package com.fabrik12.monopolyappwallet.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.fabrik12.monopolyappwallet.data.SettingsRepository
+import com.fabrik12.monopolyappwallet.worker.ServerSimulationWorker
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 /**
  * @brief Acceder al 'Application' Context desde el ViewModel
@@ -28,5 +34,29 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             settingsRepository.saveThemePreference(theme)
         }
+    }
+
+    /**
+     * @brief Iniciar una simulación de servidor una sola vez.
+     * Utiliza WorkManager para gestionar la tarea en segundo plano.
+     */
+    fun triggerOneTimeSimulation() {
+        val workRequest = OneTimeWorkRequestBuilder<ServerSimulationWorker>()
+            .build()
+
+        WorkManager.getInstance(getApplication()).enqueue(workRequest)
+
+    }
+
+    fun startPeriodicSimulation() {
+        val periodicRequest = PeriodicWorkRequestBuilder<ServerSimulationWorker>(
+            15, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(getApplication()).enqueueUniquePeriodicWork(
+            "MonopolyServerSimulation",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicRequest
+        )
     }
 }

@@ -5,10 +5,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,8 +39,12 @@ import com.fabrik12.monopolyappwallet.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreenContent(
     currentTheme: String,
-    onThemeSelected: (String) -> Unit
+    onThemeSelected: (String) -> Unit,
+    onOneTimeSimulation: () -> Unit,
+    onPeriodicSimulation: () -> Unit
 ) {
+    val iconPrimary = colorScheme.primary
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Configuración") })
@@ -42,6 +54,7 @@ fun SettingsScreenContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = "Seleccionar Tema",
@@ -65,6 +78,45 @@ fun SettingsScreenContent(
                     onClick = { onThemeSelected(SettingsRepository.SYSTEM_MODE) }
                 )
             }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+
+            Text(
+                text = "Developer Tools (Lab 10)",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.error, // Color de advertencia
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "Simulador de Servidor",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // Btn 1: Simulacion unica
+            Button(
+                onClick = onOneTimeSimulation,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = iconPrimary,
+                    contentColor = colorScheme.onPrimary
+            )
+            ) {
+                Text("Simular Evento Único")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Btn 2: Simulacion periodica
+            OutlinedButton(
+                onClick = onPeriodicSimulation,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Iniciar Worker Periodico (15 min)")
+            }
         }
     }
 }
@@ -82,7 +134,9 @@ fun SettingsScreen() {
 
     SettingsScreenContent(
         currentTheme = currentTheme,
-        onThemeSelected = { viewModel.saveThemePreference(it) }
+        onThemeSelected = { viewModel.saveThemePreference(it) },
+        onOneTimeSimulation = { viewModel.triggerOneTimeSimulation() },
+        onPeriodicSimulation = { viewModel.startPeriodicSimulation() }
     )
 }
 
@@ -118,6 +172,8 @@ fun ThemeOption(
 fun SettingsScreenPreview() {
     SettingsScreenContent(
         currentTheme = SettingsRepository.DARK_MODE,
-        onThemeSelected = {} // No-op para preview
+        onThemeSelected = {}, // No-op para preview
+        onOneTimeSimulation = {},
+        onPeriodicSimulation = {}
     )
 }
