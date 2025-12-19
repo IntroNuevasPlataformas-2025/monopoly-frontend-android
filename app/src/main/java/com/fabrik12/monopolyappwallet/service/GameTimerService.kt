@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.ui.node.RootForTest
 import androidx.core.app.NotificationCompat
 import com.fabrik12.monopolyappwallet.R
 import kotlinx.coroutines.*
@@ -117,6 +118,17 @@ class GameTimerService: Service() {
         }
     }
 
+    /**
+     * Detener el temporizador si la tarea es removida (por ejemplo, al cerrar la app)
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopTimer()
+    }
+
+    /**
+     * Limpieza al destruir el servicio
+     */
     override fun onDestroy() {
         super.onDestroy()
         serviceJob.cancel() // Limpieza final al destruir el servicio
