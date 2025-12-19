@@ -9,7 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import kotlinx.coroutines.flow.collectLatest
@@ -33,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinScreen(navController: NavHostController) {
     val playerName = remember { mutableStateOf("") }
@@ -55,13 +59,29 @@ fun JoinScreen(navController: NavHostController) {
     val iconPrimary = colorScheme.primary
     val iconSecondary = if (isDarkTheme) MutedDark else MutedLight // Gris para claro, gris oscuro para dark
 
-    Surface(
-        color = backgroundColor,
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Unirse a Partida") },
+                navigationIcon = {
+                    if (navController.previousBackStackEntry != null) {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate("settings_screen") }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuración")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
                 .imePadding()
         ) {
             Column(

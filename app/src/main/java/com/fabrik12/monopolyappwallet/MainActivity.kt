@@ -58,6 +58,10 @@ class MainActivity : ComponentActivity() {
                             val gameId = backStackEntry.arguments?.getString("gameId")
                             MainScreen(gameId = gameId) // Llamada al nuevo composable
                         }
+                        // Allow navigating directly to settings from JoinScreen
+                        composable("settings_screen") {
+                            com.fabrik12.monopolyappwallet.ui.SettingsScreen()
+                        }
                     }
                 }
 
