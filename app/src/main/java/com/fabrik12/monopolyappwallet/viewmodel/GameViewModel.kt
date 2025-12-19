@@ -82,7 +82,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val wsClient: WebSocketClient = WebSocketClient.createDefault()
     private val gson = Gson()
 
-    // Player id actual (se puede establecer desde UI al iniciar sesión / unirse)
+    // Player id actual (se puede establecer desde UI al iniciar sesión /unirse)
     private var currentPlayerId: String? = null
 
     // UI-exposed state
@@ -95,6 +95,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _gameStatus = MutableStateFlow<String?>(null)
     val gameStatus: StateFlow<String?> = _gameStatus.asStateFlow()
 
+    // Lista de jugadores expuesta para la UI (dropdown de pago)
+    private val _players = MutableStateFlow<List<Player>>(emptyList())
+    val players: StateFlow<List<Player>> = _players.asStateFlow()
+
+    // Lista de propiedades disponibles (no compradas)
+    private val ALL_PROPERTIES = listOf("mediterranean_avenue", "boardwalk", "park_place", "baltic_avenue")
+    private val _availableProperties = MutableStateFlow<List<String>>(ALL_PROPERTIES)
+    val availableProperties: StateFlow<List<String>> = _availableProperties.asStateFlow()
+
     // UI events (errores, notificaciones)
     private val _uiEvents = MutableSharedFlow<String>(replay = 0)
     val uiEvents = _uiEvents.asSharedFlow()
@@ -105,6 +114,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             wsClient.gameState.collectLatest { gs ->
                 // Actualizar status
                 _gameStatus.emit(gs?.status)
+
+                // Actualizar lista de jugadores
+                _players.emit(gs?.players ?: emptyList())
 
                 // Actualizar propiedades y balance del jugador actual
                 val pid = currentPlayerId
@@ -117,6 +129,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     _currentBalance.emit(null)
                     _myProperties.emit(emptyList())
                 }
+
+                // Calcular propiedades disponibles (no compradas)
+                val owned = gs?.players?.flatMap { it.properties }?.toSet() ?: emptySet()
+                _availableProperties.emit(ALL_PROPERTIES.filter { !owned.contains(it) })
             }
         }
 

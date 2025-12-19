@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fabrik12.monopolyappwallet.ui.theme.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 
 // Enum to identify which action is selected
 enum class ActionType {
@@ -71,6 +73,17 @@ fun ActionsScreen() {
     var showSuccessAnimation by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
+
+    val gameViewModel: GameViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
+    // Observar eventos para mostrar animacion cuando recibimos success
+    LaunchedEffect(Unit) {
+        gameViewModel.uiEvents.collectLatest { ev ->
+            if (ev == "PAYMENT_SUCCESS" || ev == "PURCHASE_SUCCESS") {
+                showSuccessAnimation = true
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -223,21 +236,42 @@ fun ActionsScreen() {
                                 modifier = Modifier.padding(bottom = 16.dp)
                             )
                             PayPlayerForm(
-                                onPayClicked = {
+                                onPayClicked = { toPlayerId, amount ->
+                                    // Validar monto y enviar pago
+                                    if (amount <= 0) return@PayPlayerForm
+                                    gameViewModel.sendPayment(amount, toPlayerId)
                                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                                         if (!sheetState.isVisible) {
                                             showBottomSheet = false
-                                            showSuccessAnimation = true
+                                            // showSuccessAnimation is triggered by uiEvents
                                         }
                                     }
-                                }
+                                },
+                                playersFlow = gameViewModel.players
                             )
                         }
                         ActionType.BANK_OPERATIONS -> {
                              PlaceholderActionContent("Operaciones con la Banca")
                         }
                         ActionType.BUILD -> {
-                             PlaceholderActionContent("Construir Casa/Hotel")
+                             Text(
+                                "Comprar Propiedad",
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            BuyPropertyForm(
+                                availablePropertiesFlow = gameViewModel.availableProperties,
+                                onBuyClicked = { propertyId ->
+                                    if (propertyId.isBlank()) return@BuyPropertyForm
+                                    gameViewModel.buyProperty(propertyId)
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
+                                            // success animation will be triggered from uiEvents
+                                        }
+                                    }
+                                }
+                            )
                         }
                         ActionType.MORTGAGE -> {
                              PlaceholderActionContent("Hipotecar Propiedad")
@@ -324,12 +358,14 @@ fun PlaceholderActionContent(title: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PayPlayerForm(
-    onPayClicked: () -> Unit
+    onPayClicked: (toPlayerId: String?, amount: Int) -> Unit,
+    playersFlow: StateFlow<List<Player>>
 ){
-    var selectedPlayer by remember { mutableStateOf("Select Player") }
+    var selectedPlayer by remember { mutableStateOf<String?>(null) }
     var amountToPay by remember { mutableStateOf("")}
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    val players = listOf("Player 2", "Player 3", "The Banker") // Datos de ejemplo
+    val players by playersFlow.collectAsState()
+    val playersLabels = players.map { it.name }.ifEmpty { listOf("No players") }
 
     Column( // Changed Row to Column for better mobile layout in bottom sheet if needed, but original was Row.
             // The original PayPlayerForm had a Row with Dropdown and Amount. Let's keep it similar but adapted.
@@ -340,13 +376,13 @@ fun PayPlayerForm(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ExposedDropdownMenuBox(
+                    ExposedDropdownMenuBox(
                 expanded = isDropdownExpanded,
                 onExpandedChange = { isDropdownExpanded = it },
                 modifier = Modifier.weight(1f)
             ) {
                 OutlinedTextField(
-                    value = selectedPlayer,
+                    value = selectedPlayer ?: "Select Player",
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
@@ -359,9 +395,9 @@ fun PayPlayerForm(
                 ) {
                     players.forEach { player ->
                         DropdownMenuItem(
-                            text = { Text(player) },
+                            text = { Text(player.name) },
                             onClick = {
-                                selectedPlayer = player
+                                selectedPlayer = player.id
                                 isDropdownExpanded = false
                             }
                         )
@@ -381,12 +417,71 @@ fun PayPlayerForm(
         // Boton principal
         Button(
             onClick = {
-                Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amountToPay")
-                onPayClicked()
+                val amt = amountToPay.toIntOrNull() ?: 0
+                Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amt")
+                if (amt > 0) {
+                    onPayClicked(selectedPlayer, amt)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ){
             Text("Pagar Jugador")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BuyPropertyForm(
+    availablePropertiesFlow: kotlinx.coroutines.flow.StateFlow<List<String>>,
+    onBuyClicked: (propertyId: String) -> Unit
+) {
+    var selectedProperty by remember { mutableStateOf<String?>(null) }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+    val available by availablePropertiesFlow.collectAsState()
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = isDropdownExpanded,
+            onExpandedChange = { isDropdownExpanded = it }
+        ) {
+            OutlinedTextField(
+                value = selectedProperty ?: "Select Property",
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true)
+            )
+
+            ExposedDropdownMenu(
+                expanded = isDropdownExpanded,
+                onDismissRequest = { isDropdownExpanded = false }
+            ) {
+                available.forEach { prop ->
+                    DropdownMenuItem(
+                        text = { Text(prop) },
+                        onClick = {
+                            selectedProperty = prop
+                            isDropdownExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                val prop = selectedProperty ?: ""
+                if (prop.isNotBlank()) onBuyClicked(prop)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Comprar Propiedad")
         }
     }
 }
