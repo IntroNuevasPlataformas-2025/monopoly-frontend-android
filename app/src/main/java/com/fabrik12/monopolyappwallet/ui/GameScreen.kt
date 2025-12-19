@@ -41,18 +41,7 @@ import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
 import com.fabrik12.monopolyappwallet.ui.models.TransactionType
 import com.fabrik12.monopolyappwallet.ui.models.TransactionUiModel
 import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
-
-// --- Colors ---
-val PrimaryGreen = Color(0xFF58CC02)
-val BackgroundLight = Color(0xFFFFFFFF)
-val BackgroundDark = Color(0xFF131E28)
-val Slate100 = Color(0xFFF1F5F9)
-val Slate200 = Color(0xFFE2E8F0)
-val Slate400 = Color(0xFF94A3B8)
-val Slate500 = Color(0xFF64748B)
-val Slate700 = Color(0xFF334155)
-val Slate800 = Color(0xFF1E293B)
-val Slate900 = Color(0xFF0F172A)
+import com.fabrik12.monopolyappwallet.ui.theme.*
 
 // --- Components ---
 
@@ -62,10 +51,11 @@ fun GameHeader(
     cash: Int,
     propertyCount: Int
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(PrimaryGreen)
+            .background(colorScheme.primary)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -77,8 +67,7 @@ fun GameHeader(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray)
-                    .background(Color.LightGray) // Fallback if image not loaded
+                    .background(MutedLight)
             ) {
                  // Placeholder for Avatar Image
                  Icon(
@@ -91,7 +80,7 @@ fun GameHeader(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = playerName,
-                color = Color.White,
+                color = colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -104,12 +93,12 @@ fun GameHeader(
                 Icon(
                     imageVector = Icons.Default.Payments,
                     contentDescription = "Cash",
-                    tint = Color(0xFFFDE047), // Yellow-300
+                    tint = Color(0xFFFDE047), // Amarillo
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
                     text = cash.toString(),
-                    color = Color.White,
+                    color = colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -119,12 +108,12 @@ fun GameHeader(
                 Icon(
                     imageVector = Icons.Default.Home,
                     contentDescription = "Properties",
-                    tint = Color.White,
+                    tint = colorScheme.onPrimary,
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
                     text = propertyCount.toString(),
-                    color = Color.White,
+                    color = colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -135,10 +124,11 @@ fun GameHeader(
 
 @Composable
 fun BalanceCard(balance: Int) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val cardBg = if (isDark) Slate800 else Slate100
-    val labelColor = if (isDark) Slate400 else Slate500
-    val amountColor = if (isDark) Color.White else Slate800
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val cardBg = colorScheme.surface
+    val labelColor = if (isDark) MutedDark else MutedLight
+    val amountColor = colorScheme.onSurface
 
     Column(
         modifier = Modifier
@@ -166,9 +156,9 @@ fun BalanceCard(balance: Int) {
 
 @Composable
 fun SectionHeader(title: String) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val textColor = if (isDark) Slate200 else Slate700
-
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val textColor = colorScheme.onSurface
     Text(
         text = title,
         color = textColor,
@@ -180,14 +170,13 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun PropertyCard(property: PropertyUiModel) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val cardBg = if (isDark) Slate800 else Slate100
-    val titleColor = if (isDark) Color.White else Slate800
-    val subtitleColor = if (isDark) Slate400 else Slate500
-    val valueColor = if (property.isMortgaged) Color(0xFFEF4444) else Color(0xFF22C55E) // Red or Green
-
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val cardBg = colorScheme.surface
+    val titleColor = colorScheme.onSurface
+    val subtitleColor = if (isDark) MutedDark else MutedLight
+    val valueColor = if (property.isMortgaged) ActionRedTextLight else ActionGreenTextLight
     val opacityModifier = if (property.isMortgaged) Modifier.alpha(0.6f) else Modifier
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -224,7 +213,6 @@ fun PropertyCard(property: PropertyUiModel) {
                         property.hotelCount > 0 -> "${property.hotelCount} Hotel"
                         else -> "${property.houseCount} Casas"
                     }
-
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
@@ -251,12 +239,34 @@ fun PropertyCard(property: PropertyUiModel) {
 
 @Composable
 fun TransactionCard(transaction: TransactionUiModel) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val cardBg = if (isDark) Slate800 else Slate100
-    val titleColor = if (isDark) Color.White else Slate800
-    val subtitleColor = if (isDark) Slate400 else Slate500
-    val amountColor = if (transaction.isPositive) Color(0xFF22C55E) else Color(0xFFEF4444)
-
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val cardBg = colorScheme.surface
+    val titleColor = colorScheme.onSurface
+    val subtitleColor = if (isDark) MutedDark else MutedLight
+    val amountColor = if (transaction.isPositive) ActionGreenTextLight else ActionRedTextLight
+    val (bgColor, iconColor, icon) = when (transaction.type) {
+        TransactionType.PURCHASE -> Triple(
+            if (isDark) ActionBlueBgDark else ActionBlueBgLight,
+            if (isDark) ActionBlueTextDark else ActionBlueTextLight,
+            Icons.Default.ShoppingCart
+        )
+        TransactionType.RENT -> Triple(
+            if (isDark) ActionGreenBgDark else ActionGreenBgLight,
+            if (isDark) ActionGreenTextDark else ActionGreenTextLight,
+            Icons.Default.Paid
+        )
+        TransactionType.CONSTRUCTION -> Triple(
+            if (isDark) ActionPurpleBgDark else ActionPurpleBgLight,
+            if (isDark) ActionPurpleTextDark else ActionPurpleTextLight,
+            Icons.Default.Construction
+        )
+        TransactionType.EVENT -> Triple(
+            if (isDark) ActionYellowBgDark else ActionYellowBgLight,
+            if (isDark) ActionYellowTextDark else ActionYellowTextLight,
+            Icons.Default.Celebration
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -264,32 +274,6 @@ fun TransactionCard(transaction: TransactionUiModel) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon Circle
-        // Dark mode backgrounds need higher transparency or different shades.
-        // Tailwind reference: bg-blue-100 dark:bg-blue-900/50
-        val (bgColor, iconColor, icon) = when (transaction.type) {
-            TransactionType.PURCHASE -> Triple(
-                if (isDark) Color(0x801E3A8A) else Color(0xFFDBEAFE),
-                if (isDark) Color(0xFF60A5FA) else Color(0xFF3B82F6),
-                Icons.Default.ShoppingCart
-            )
-            TransactionType.RENT -> Triple(
-                if (isDark) Color(0x8014532D) else Color(0xFFDCFCE7),
-                if (isDark) Color(0xFF4ADE80) else Color(0xFF22C55E),
-                Icons.Default.Paid
-            )
-            TransactionType.CONSTRUCTION -> Triple(
-                if (isDark) Color(0x80581C87) else Color(0xFFF3E8FF),
-                if (isDark) Color(0xFFC084FC) else Color(0xFFA855F7),
-                Icons.Default.Construction
-            )
-            TransactionType.EVENT -> Triple(
-                if (isDark) Color(0x80713F12) else Color(0xFFFEF9C3),
-                if (isDark) Color(0xFFFACC15) else Color(0xFFEAB308),
-                Icons.Default.Celebration
-            )
-        }
-
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -303,9 +287,7 @@ fun TransactionCard(transaction: TransactionUiModel) {
                 modifier = Modifier.size(24.dp)
             )
         }
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = transaction.title,
@@ -319,7 +301,6 @@ fun TransactionCard(transaction: TransactionUiModel) {
                 fontSize = 14.sp
             )
         }
-
         Text(
             text = "${if (transaction.isPositive) "+" else "-"}$${transaction.amount}",
             fontWeight = FontWeight.Bold,
@@ -331,11 +312,11 @@ fun TransactionCard(transaction: TransactionUiModel) {
 
 @Composable
 fun BottomNavBar() {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val containerColor = if (isDark) Slate800 else Color.White
-    val unselectedColor = if (isDark) Slate400 else Slate500
-    val borderColor = if (isDark) Slate700 else Slate200
-
+    val colorScheme = MaterialTheme.colorScheme
+    val isDark = isSystemInDarkTheme()
+    val containerColor = colorScheme.surface
+    val unselectedColor = if (isDark) MutedDark else MutedLight
+    val borderColor = if (isDark) BorderDark else BorderLight
     NavigationBar(
         containerColor = containerColor,
         contentColor = unselectedColor,
@@ -356,7 +337,6 @@ fun BottomNavBar() {
             Triple("Acciones", Icons.Default.SwapHoriz, false),
             Triple("Settings", Icons.Default.Settings, false)
         )
-
         items.forEach { (label, icon, isSelected) ->
             NavigationBarItem(
                 selected = isSelected,
@@ -364,8 +344,8 @@ fun BottomNavBar() {
                 icon = { Icon(icon, contentDescription = label) },
                 label = { Text(label, fontWeight = FontWeight.Bold) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = PrimaryGreen,
-                    selectedTextColor = PrimaryGreen,
+                    selectedIconColor = colorScheme.primary,
+                    selectedTextColor = colorScheme.primary,
                     indicatorColor = Color.Transparent,
                     unselectedIconColor = unselectedColor,
                     unselectedTextColor = unselectedColor
@@ -383,11 +363,9 @@ fun GameScreenContent(
     transactions: List<TransactionUiModel>,
     onStopGame: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val bgColor = if (isDark) BackgroundDark else BackgroundLight
-
+    val colorScheme = MaterialTheme.colorScheme
+    val bgColor = colorScheme.background
     Scaffold(
-        bottomBar = { BottomNavBar() },
         containerColor = bgColor
     ) { paddingValues ->
         Column(
@@ -395,14 +373,11 @@ fun GameScreenContent(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Header
-            // Mocking name and count for now since it's not fully in VM yet
             GameHeader(
                 playerName = "Jugador 1",
                 cash = 1500,
                 propertyCount = 4
             )
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -410,14 +385,10 @@ fun GameScreenContent(
                 contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Balance Section
                 item {
-                    // Use VM balance if available, else Mock
                     val displayBalance = currentBalance ?: 1500
                     BalanceCard(balance = displayBalance)
                 }
-
-                // Properties Section
                 item {
                     SectionHeader(title = "Mis Propiedades")
                 }
@@ -425,8 +396,6 @@ fun GameScreenContent(
                     PropertyCard(property = property)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                // History Section
                 item {
                     SectionHeader(title = "Historial Reciente")
                 }
@@ -434,14 +403,12 @@ fun GameScreenContent(
                     TransactionCard(transaction = transaction)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                // Temporary Stop Game Button for functionality
                  item {
                      Spacer(modifier = Modifier.height(24.dp))
                      Button(
                          onClick = onStopGame,
                          modifier = Modifier.fillMaxWidth(),
-                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                         colors = ButtonDefaults.buttonColors(containerColor = colorScheme.error)
                      ) {
                          Text("Terminar Partida (Stop Timer)")
                      }
