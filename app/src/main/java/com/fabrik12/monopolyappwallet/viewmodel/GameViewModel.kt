@@ -2,12 +2,26 @@ package com.fabrik12.monopolyappwallet.viewmodel
 
 import android.app.Application
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fabrik12.monopolyappwallet.data.SettingsRepository
 import com.fabrik12.monopolyappwallet.service.GameTimerService
-import kotlinx.coroutines.flow.first
+import com.fabrik12.monopolyappwallet.ui.WebSocketClient
+import com.fabrik12.monopolyappwallet.data.models.Player
+import com.fabrik12.monopolyappwallet.data.models.GameState
+import com.fabrik12.monopolyappwallet.data.models.WebSocketMessage
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -63,4 +77,148 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
         getApplication<Application>().startService(intent)
     }
+
+    // WebSocket client (creado si no hay DI)
+    private val wsClient: WebSocketClient = WebSocketClient.createDefault().also { it.connect() }
+    private val gson = Gson()
+
+    // Player id actual (se puede establecer desde UI al iniciar sesión / unirse)
+    private var currentPlayerId: String? = null
+
+    // UI-exposed state
+    private val _currentBalance = MutableStateFlow<Int?>(null)
+    val currentBalance: StateFlow<Int?> = _currentBalance.asStateFlow()
+
+    private val _myProperties = MutableStateFlow<List<String>>(emptyList())
+    val myProperties: StateFlow<List<String>> = _myProperties.asStateFlow()
+
+    private val _gameStatus = MutableStateFlow<String?>(null)
+    val gameStatus: StateFlow<String?> = _gameStatus.asStateFlow()
+
+    // UI events (errores, notificaciones)
+    private val _uiEvents = MutableSharedFlow<String>(replay = 0)
+    val uiEvents = _uiEvents.asSharedFlow()
+
+    init {
+        // Colectar game state y eventos de WebSocket
+        viewModelScope.launch {
+            wsClient.gameState.collectLatest { gs ->
+                // Actualizar status
+                _gameStatus.emit(gs?.status)
+
+                // Actualizar propiedades y balance del jugador actual
+                val pid = currentPlayerId
+                if (pid != null && gs != null) {
+                    val player = gs.players.find { it.id == pid }
+                    _currentBalance.emit(player?.balance)
+                    _myProperties.emit(player?.properties ?: emptyList())
+                } else if (pid == null) {
+                    // Si no hay playerId aún, dejar valores nulos/vacíos
+                    _currentBalance.emit(null)
+                    _myProperties.emit(emptyList())
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            wsClient.events.collectLatest { ev ->
+                // Reemite eventos como UI events
+                _uiEvents.emit(ev)
+            }
+        }
+    }
+
+    /**
+     * Establecer el id del jugador actual (usado para filtrar propiedades/balance)
+     */
+    fun setPlayerId(playerId: String) {
+        this.currentPlayerId = playerId
+        // Reconstruir estado inmediato desde el último GameState
+        val lastState = wsClient.gameState.value
+        viewModelScope.launch {
+            _gameStatus.emit(lastState?.status)
+            val player = lastState?.players?.find { it.id == playerId }
+            _currentBalance.emit(player?.balance)
+            _myProperties.emit(player?.properties ?: emptyList())
+        }
+    }
+
+    /**
+     * Unirse / crear partida (se manda CREATE_GAME al servidor)
+     */
+    fun joinGame(playerName: String) {
+        val pid = currentPlayerId ?: "android-${System.currentTimeMillis()}"
+        currentPlayerId = pid
+
+        val payload = JsonObject().apply {
+            addProperty("playerId", pid)
+            addProperty("playerName", playerName)
+            // gameId opcional: dejar fuera para que el servidor lo genere
+        }
+        val msg = JsonObject().apply {
+            addProperty("type", "CREATE_GAME")
+            add("payload", payload)
+        }
+
+        wsClient.send(gson.toJson(msg))
+    }
+
+    /**
+     * Enviar pago (transactionType = payment). toPlayerId es opcional.
+     */
+    fun sendPayment(amount: Int, toPlayerId: String? = null) {
+        val pid = currentPlayerId ?: run {
+            viewModelScope.launch { _uiEvents.emit("Player ID not set") }
+            return
+        }
+        val payload = JsonObject().apply {
+            addProperty("transactionType", "payment")
+            addProperty("toPlayerId", toPlayerId)
+            addProperty("amount", amount)
+            addProperty("source", pid)
+        }
+        val msg = JsonObject().apply {
+            addProperty("type", "PROCESS_TRANSACTION")
+            add("payload", payload)
+        }
+        wsClient.send(gson.toJson(msg))
+    }
+
+    /**
+     * Solicitar compra de propiedad
+     * Nota: por simplicidad se envía amount = 0 si no está disponible.
+     */
+    fun buyProperty(propertyId: String, amount: Int = 0) {
+        val pid = currentPlayerId ?: run {
+            viewModelScope.launch { _uiEvents.emit("Player ID not set") }
+            return
+        }
+        val payload = JsonObject().apply {
+            addProperty("playerId", pid)
+            addProperty("propertyId", propertyId)
+            addProperty("amount", amount)
+        }
+        val msg = JsonObject().apply {
+            addProperty("type", "REQUEST_PURCHASE")
+            add("payload", payload)
+        }
+        wsClient.send(gson.toJson(msg))
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        wsClient.disconnect()
+    }
+
+    /*
+     * Snippet de ejemplo para un @Preview (comentado):
+     *
+     * @Preview
+     * @Composable
+     * fun PreviewBalance() {
+     *   val vm = /* obtener instancia de GameViewModel */
+     *   val balance by vm.currentBalance.collectAsState(null)
+     *   Text(text = "Balance actual: ${'$'}{balance ?: "--"}")
+     * }
+     */
 }
