@@ -10,9 +10,15 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.ui.theme.*
 
 @Composable
@@ -31,7 +38,13 @@ fun JoinScreen(navController: NavHostController) {
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
     val isDarkTheme = isSystemInDarkTheme()
+    val settingsViewModel: com.fabrik12.monopolyappwallet.viewmodel.SettingsViewModel = viewModel()
+    val settingsServerIp by settingsViewModel.serverIp.collectAsState()
 
+    val gameViewModel: com.fabrik12.monopolyappwallet.viewmodel.GameViewModel = viewModel()
+
+    // Local UI state
+    val isJoining = remember { androidx.compose.runtime.mutableStateOf(false) }
     val colorScheme = MaterialTheme.colorScheme
 
     val backgroundColor = colorScheme.background
@@ -134,6 +147,7 @@ fun JoinScreen(navController: NavHostController) {
                 Button(
                     onClick = {
                         if (gameId.value.isNotBlank()) {
+                            // Crear partida localmente sin usar WebSocket (mantener comportamiento previo)
                             navController.navigate("main_screen/${gameId.value}")
                         }
                     },
@@ -158,16 +172,20 @@ fun JoinScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Unirse con WebSocket real: botón habilitado solo si nombre no vacío
                 OutlinedButton(
                     onClick = {
-                        if (gameId.value.isNotBlank()) {
-                            navController.navigate("main_screen/${gameId.value}")
+                        if (playerName.value.isNotBlank()) {
+                            isJoining.value = true
+                            // Usar IP configurada si existe, si no usar valor por defecto en GameViewModel/wsClient
+                            gameViewModel.joinGame(playerName.value, settingsServerIp)
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
+                    enabled = playerName.value.isNotBlank(),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         width = 2.dp,
                         brush = androidx.compose.ui.graphics.SolidColor(iconPrimary)
@@ -176,6 +194,14 @@ fun JoinScreen(navController: NavHostController) {
                         contentColor = iconPrimary
                     )
                 ) {
+                    if (isJoining.value) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = iconPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                     Text(
                         "Unirse",
                         style = TextStyle(
@@ -185,11 +211,38 @@ fun JoinScreen(navController: NavHostController) {
                         )
                     )
                 }
+
+                // Navegar automáticamente cuando GameViewModel indique que gameStatus ya no es null
+                val gameStatus by gameViewModel.gameStatus.collectAsState()
+                LaunchedEffect(gameStatus) {
+                    if (gameStatus != null) {
+                        isJoining.value = false
+                        // Navegar a la pantalla principal. Si el servidor retorna gameId en GameState, preferirlo.
+                        val gid = gameViewModel.gameStatus.value ?: gameId.value.ifBlank { "unknown" }
+                        navController.navigate("main_screen/${gid}")
+                    }
+                }
+
+                // Mostrar Snackbar si WebSocket emite error
+                val snackbarHostState = remember { SnackbarHostState() }
+                LaunchedEffect(Unit) {
+                    gameViewModel.uiEvents.collectLatest { ev ->
+                        snackbarHostState.showSnackbar(ev)
+                        isJoining.value = false
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Mostrar el host de snackbars
+                SnackbarHost(hostState = snackbarHostState)
+
             }
         }
     }
 }
 
+/**
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
 fun JoinScreenPreviewLight() {
@@ -205,3 +258,4 @@ fun JoinScreenPreviewDark() {
         JoinScreen(navController = rememberNavController())
     }
 }
+ */

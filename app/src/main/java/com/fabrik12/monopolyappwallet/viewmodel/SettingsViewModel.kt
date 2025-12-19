@@ -30,10 +30,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             initialValue = SettingsRepository.SYSTEM_MODE // Valor inicial
         )
 
+    // Server IP
+    val serverIp: StateFlow<String?> = settingsRepository.serverIpFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     fun saveThemePreference(theme: String) {
         viewModelScope.launch {
             settingsRepository.saveThemePreference(theme)
         }
+    }
+
+    fun saveServerIp(ip: String?) {
+        viewModelScope.launch { settingsRepository.saveServerIp(ip) }
     }
 
     /**

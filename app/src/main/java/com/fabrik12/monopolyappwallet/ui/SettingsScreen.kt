@@ -17,6 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,7 +44,9 @@ fun SettingsScreenContent(
     currentTheme: String,
     onThemeSelected: (String) -> Unit,
     onOneTimeSimulation: () -> Unit,
-    onPeriodicSimulation: () -> Unit
+    onPeriodicSimulation: () -> Unit,
+    serverIp: String?,
+    onSaveServerIp: (String?) -> Unit
 ) {
     val iconPrimary = colorScheme.primary
 
@@ -96,6 +101,29 @@ fun SettingsScreenContent(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            // IP del servidor editable
+            val serverIpInput = remember { mutableStateOf(serverIp ?: "") }
+
+            OutlinedTextField(
+                value = serverIpInput.value,
+                onValueChange = { serverIpInput.value = it },
+                placeholder = { Text("WebSocket server IP (ej: ws://10.0.2.2:3000)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                singleLine = true
+            )
+
+            Button(
+                onClick = { onSaveServerIp(serverIpInput.value.ifBlank { null }) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Guardar IP")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Btn 1: Simulacion unica
             Button(
                 onClick = onOneTimeSimulation,
@@ -131,12 +159,15 @@ fun SettingsScreen() {
     val viewModel: SettingsViewModel = viewModel()
     // "Observar" el tema actual
     val currentTheme by viewModel.themePreference.collectAsState()
+    val serverIpState by viewModel.serverIp.collectAsState()
 
     SettingsScreenContent(
         currentTheme = currentTheme,
         onThemeSelected = { viewModel.saveThemePreference(it) },
         onOneTimeSimulation = { viewModel.triggerOneTimeSimulation() },
-        onPeriodicSimulation = { viewModel.startPeriodicSimulation() }
+        onPeriodicSimulation = { viewModel.startPeriodicSimulation() },
+        serverIp = serverIpState,
+        onSaveServerIp = { viewModel.saveServerIp(it) }
     )
 }
 
@@ -174,6 +205,8 @@ fun SettingsScreenPreview() {
         currentTheme = SettingsRepository.DARK_MODE,
         onThemeSelected = {}, // No-op para preview
         onOneTimeSimulation = {},
-        onPeriodicSimulation = {}
+        onPeriodicSimulation = {},
+        serverIp = "ws://10.0.2.2:3000",
+        onSaveServerIp = {}
     )
 }

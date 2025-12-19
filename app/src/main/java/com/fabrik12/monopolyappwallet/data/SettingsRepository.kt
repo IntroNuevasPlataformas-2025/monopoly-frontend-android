@@ -32,6 +32,7 @@ class SettingsRepository(private val context: Context) {
     private object Keys {
         val THEME_KEY = stringPreferencesKey("theme_preference")
         val GAME_START_TIME = longPreferencesKey("game_start_time")
+        val SERVER_IP = stringPreferencesKey("server_ip")
     }
 
     // Posibles valores
@@ -53,6 +54,19 @@ class SettingsRepository(private val context: Context) {
         }
         .map { preferences ->
             preferences[Keys.THEME_KEY] ?: SYSTEM_MODE
+        }
+
+    // Servidor IP configurado por el usuario
+    val serverIpFlow: Flow<String?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[Keys.SERVER_IP]
         }
 
     // Funcion para Guardar preferencia
@@ -86,6 +100,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveGameStartTime(startTime: Long) {
         context.dataStore.edit { preferences ->
             preferences[Keys.GAME_START_TIME] = startTime
+        }
+    }
+
+    suspend fun saveServerIp(serverIp: String?) {
+        context.dataStore.edit { preferences ->
+            if (serverIp == null) preferences.remove(Keys.SERVER_IP)
+            else preferences[Keys.SERVER_IP] = serverIp
         }
     }
 
