@@ -78,8 +78,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().startService(intent)
     }
 
-    // WebSocket client (creado si no hay DI)
-    private val wsClient: WebSocketClient = WebSocketClient.createDefault().also { it.connect() }
+    // WebSocket client (creado si no hay DI). No conectar todavía: se conectará cuando se una al juego.
+    private val wsClient: WebSocketClient = WebSocketClient.createDefault()
     private val gson = Gson()
 
     // Player id actual (se puede establecer desde UI al iniciar sesión / unirse)
@@ -146,9 +146,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Unirse / crear partida (se manda CREATE_GAME al servidor)
      */
-    fun joinGame(playerName: String) {
+    fun joinGame(playerName: String, serverUrl: String? = null) {
         val pid = currentPlayerId ?: "android-${System.currentTimeMillis()}"
         currentPlayerId = pid
+
+        // Conectar al servidor (si se pasa serverUrl lo usaremos), y enviar CREATE_GAME
+        wsClient.connect(serverUrl)
 
         val payload = JsonObject().apply {
             addProperty("playerId", pid)

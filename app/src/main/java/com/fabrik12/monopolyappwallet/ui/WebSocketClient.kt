@@ -36,13 +36,18 @@ class WebSocketClient(
     private val _events = kotlinx.coroutines.flow.MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 64)
     val events: kotlinx.coroutines.flow.SharedFlow<String> = _events.asSharedFlow()
 
-    fun connect() {
-        val request = Request.Builder().url(SERVER_URL).build()
+    fun connect(serverUrl: String? = null) {
+        // Si ya hay una conexion abierta, cerrarla antes de reconectar
+        webSocket?.close(1000, "reconnect")
+        webSocket = null
+
+        val url = serverUrl ?: SERVER_URL
+        val request = Request.Builder().url(url).build()
 
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 this@WebSocketClient.webSocket = webSocket
-                Log.d("WebSocketClient", "Conexión abierta")
+                Log.d("WebSocketClient", "Conexión abierta: $url")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
