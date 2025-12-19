@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -45,11 +47,12 @@ val PrimaryGreen = Color(0xFF58CC02)
 val BackgroundLight = Color(0xFFFFFFFF)
 val BackgroundDark = Color(0xFF131E28)
 val Slate100 = Color(0xFFF1F5F9)
+val Slate200 = Color(0xFFE2E8F0)
+val Slate400 = Color(0xFF94A3B8)
 val Slate500 = Color(0xFF64748B)
 val Slate700 = Color(0xFF334155)
 val Slate800 = Color(0xFF1E293B)
-val TextDark = Color(0xFF1E293B)
-val TextLight = Color(0xFFFFFFFF)
+val Slate900 = Color(0xFF0F172A)
 
 // --- Components ---
 
@@ -132,22 +135,27 @@ fun GameHeader(
 
 @Composable
 fun BalanceCard(balance: Int) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val cardBg = if (isDark) Slate800 else Slate100
+    val labelColor = if (isDark) Slate400 else Slate500
+    val amountColor = if (isDark) Color.White else Slate800
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Slate100, shape = RoundedCornerShape(16.dp)) // Using Slate100 for light mode
+            .background(cardBg, shape = RoundedCornerShape(16.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "SALDO DISPONIBLE",
-            color = Slate500,
+            color = labelColor,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = "$${String.format("%,d", balance)}",
-            color = Slate800,
+            color = amountColor,
             fontSize = 48.sp,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.padding(top = 4.dp),
@@ -158,9 +166,12 @@ fun BalanceCard(balance: Int) {
 
 @Composable
 fun SectionHeader(title: String) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val textColor = if (isDark) Slate200 else Slate700
+
     Text(
         text = title,
-        color = Slate700,
+        color = textColor,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(vertical = 12.dp)
@@ -169,13 +180,19 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun PropertyCard(property: PropertyUiModel) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val cardBg = if (isDark) Slate800 else Slate100
+    val titleColor = if (isDark) Color.White else Slate800
+    val subtitleColor = if (isDark) Slate400 else Slate500
+    val valueColor = if (property.isMortgaged) Color(0xFFEF4444) else Color(0xFF22C55E) // Red or Green
+
     val opacityModifier = if (property.isMortgaged) Modifier.alpha(0.6f) else Modifier
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .then(opacityModifier)
-            .background(Slate100, shape = RoundedCornerShape(12.dp))
+            .background(cardBg, shape = RoundedCornerShape(12.dp))
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -193,7 +210,7 @@ fun PropertyCard(property: PropertyUiModel) {
                 Text(
                     text = property.name,
                     fontWeight = FontWeight.Bold,
-                    color = Slate800,
+                    color = titleColor,
                     fontSize = 16.sp
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
@@ -211,13 +228,13 @@ fun PropertyCard(property: PropertyUiModel) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Slate500,
+                        tint = subtitleColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = text,
-                        color = Slate500,
+                        color = subtitleColor,
                         fontSize = 14.sp
                     )
                 }
@@ -226,7 +243,7 @@ fun PropertyCard(property: PropertyUiModel) {
         Text(
             text = "$${property.value}",
             fontWeight = FontWeight.Bold,
-            color = if (property.isMortgaged) Color(0xFFEF4444) else Color(0xFF22C55E), // Red or Green
+            color = valueColor,
             fontSize = 16.sp
         )
     }
@@ -234,19 +251,43 @@ fun PropertyCard(property: PropertyUiModel) {
 
 @Composable
 fun TransactionCard(transaction: TransactionUiModel) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val cardBg = if (isDark) Slate800 else Slate100
+    val titleColor = if (isDark) Color.White else Slate800
+    val subtitleColor = if (isDark) Slate400 else Slate500
+    val amountColor = if (transaction.isPositive) Color(0xFF22C55E) else Color(0xFFEF4444)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Slate100, shape = RoundedCornerShape(12.dp))
+            .background(cardBg, shape = RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icon Circle
+        // Dark mode backgrounds need higher transparency or different shades.
+        // Tailwind reference: bg-blue-100 dark:bg-blue-900/50
         val (bgColor, iconColor, icon) = when (transaction.type) {
-            TransactionType.PURCHASE -> Triple(Color(0xFFDBEAFE), Color(0xFF3B82F6), Icons.Default.ShoppingCart) // Blue
-            TransactionType.RENT -> Triple(Color(0xFFDCFCE7), Color(0xFF22C55E), Icons.Default.Paid) // Green
-            TransactionType.CONSTRUCTION -> Triple(Color(0xFFF3E8FF), Color(0xFFA855F7), Icons.Default.Construction) // Purple
-            TransactionType.EVENT -> Triple(Color(0xFFFEF9C3), Color(0xFFEAB308), Icons.Default.Celebration) // Yellow
+            TransactionType.PURCHASE -> Triple(
+                if (isDark) Color(0x801E3A8A) else Color(0xFFDBEAFE),
+                if (isDark) Color(0xFF60A5FA) else Color(0xFF3B82F6),
+                Icons.Default.ShoppingCart
+            )
+            TransactionType.RENT -> Triple(
+                if (isDark) Color(0x8014532D) else Color(0xFFDCFCE7),
+                if (isDark) Color(0xFF4ADE80) else Color(0xFF22C55E),
+                Icons.Default.Paid
+            )
+            TransactionType.CONSTRUCTION -> Triple(
+                if (isDark) Color(0x80581C87) else Color(0xFFF3E8FF),
+                if (isDark) Color(0xFFC084FC) else Color(0xFFA855F7),
+                Icons.Default.Construction
+            )
+            TransactionType.EVENT -> Triple(
+                if (isDark) Color(0x80713F12) else Color(0xFFFEF9C3),
+                if (isDark) Color(0xFFFACC15) else Color(0xFFEAB308),
+                Icons.Default.Celebration
+            )
         }
 
         Box(
@@ -269,12 +310,12 @@ fun TransactionCard(transaction: TransactionUiModel) {
             Text(
                 text = transaction.title,
                 fontWeight = FontWeight.Bold,
-                color = Slate800,
+                color = titleColor,
                 fontSize = 16.sp
             )
             Text(
                 text = transaction.subtitle,
-                color = Slate500,
+                color = subtitleColor,
                 fontSize = 14.sp
             )
         }
@@ -282,7 +323,7 @@ fun TransactionCard(transaction: TransactionUiModel) {
         Text(
             text = "${if (transaction.isPositive) "+" else "-"}$${transaction.amount}",
             fontWeight = FontWeight.Bold,
-            color = if (transaction.isPositive) Color(0xFF22C55E) else Color(0xFFEF4444),
+            color = amountColor,
             fontSize = 16.sp
         )
     }
@@ -290,63 +331,47 @@ fun TransactionCard(transaction: TransactionUiModel) {
 
 @Composable
 fun BottomNavBar() {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val containerColor = if (isDark) Slate800 else Color.White
+    val unselectedColor = if (isDark) Slate400 else Slate500
+    val borderColor = if (isDark) Slate700 else Slate200
+
     NavigationBar(
-        containerColor = Color.White,
-        contentColor = Slate500,
-        tonalElevation = 8.dp
+        containerColor = containerColor,
+        contentColor = unselectedColor,
+        tonalElevation = 8.dp,
+        modifier = Modifier.drawBehind {
+             val strokeWidth = 1.dp.toPx()
+             drawLine(
+                 color = borderColor,
+                 start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                 end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                 strokeWidth = strokeWidth
+             )
+        }
     ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-            label = { Text("Home", fontWeight = FontWeight.Bold) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = PrimaryGreen,
-                selectedTextColor = PrimaryGreen,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = Slate500,
-                unselectedTextColor = Slate500
-            )
+        val items = listOf(
+            Triple("Home", Icons.Default.Home, true),
+            Triple("Propiedades", Icons.Default.Foundation, false),
+            Triple("Acciones", Icons.Default.SwapHoriz, false),
+            Triple("Settings", Icons.Default.Settings, false)
         )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.Foundation, contentDescription = "Propiedades") },
-            label = { Text("Propiedades", fontWeight = FontWeight.Bold) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = PrimaryGreen,
-                selectedTextColor = PrimaryGreen,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = Slate500,
-                unselectedTextColor = Slate500
+
+        items.forEach { (label, icon, isSelected) ->
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { },
+                icon = { Icon(icon, contentDescription = label) },
+                label = { Text(label, fontWeight = FontWeight.Bold) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = PrimaryGreen,
+                    selectedTextColor = PrimaryGreen,
+                    indicatorColor = Color.Transparent,
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor
+                )
             )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "Acciones") },
-            label = { Text("Acciones", fontWeight = FontWeight.Bold) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = PrimaryGreen,
-                selectedTextColor = PrimaryGreen,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = Slate500,
-                unselectedTextColor = Slate500
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            label = { Text("Settings", fontWeight = FontWeight.Bold) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = PrimaryGreen,
-                selectedTextColor = PrimaryGreen,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = Slate500,
-                unselectedTextColor = Slate500
-            )
-        )
+        }
     }
 }
 
@@ -358,8 +383,12 @@ fun GameScreenContent(
     transactions: List<TransactionUiModel>,
     onStopGame: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val bgColor = if (isDark) BackgroundDark else BackgroundLight
+
     Scaffold(
-        bottomBar = { BottomNavBar() }
+        bottomBar = { BottomNavBar() },
+        containerColor = bgColor
     ) { paddingValues ->
         Column(
             modifier = Modifier
