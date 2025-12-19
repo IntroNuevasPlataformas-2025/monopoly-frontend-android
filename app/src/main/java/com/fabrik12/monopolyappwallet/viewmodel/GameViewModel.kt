@@ -95,6 +95,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _gameStatus = MutableStateFlow<String?>(null)
     val gameStatus: StateFlow<String?> = _gameStatus.asStateFlow()
 
+    // Last connected gameId (expuesto para navegación)
+    private val _lastGameId = MutableStateFlow<String?>(null)
+    val lastGameId: StateFlow<String?> = _lastGameId.asStateFlow()
+
     // Lista de jugadores expuesta para la UI (dropdown de pago)
     private val _players = MutableStateFlow<List<Player>>(emptyList())
     val players: StateFlow<List<Player>> = _players.asStateFlow()
@@ -114,6 +118,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             wsClient.gameState.collectLatest { gs ->
                 // Actualizar status
                 _gameStatus.emit(gs?.status)
+                // Actualizar lastGameId
+                _lastGameId.emit(gs?.gameId)
 
                 // Actualizar lista de jugadores
                 _players.emit(gs?.players ?: emptyList())
@@ -162,7 +168,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Unirse / crear partida (se manda CREATE_GAME al servidor)
      */
-    fun joinGame(playerName: String, serverUrl: String? = null) {
+    fun joinGame(playerName: String, serverUrl: String? = null, maxPlayers: Int? = null) {
         val pid = currentPlayerId ?: "android-${System.currentTimeMillis()}"
         currentPlayerId = pid
 
@@ -172,10 +178,33 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val payload = JsonObject().apply {
             addProperty("playerId", pid)
             addProperty("playerName", playerName)
+            maxPlayers?.let { addProperty("maxPlayers", it) }
             // gameId opcional: dejar fuera para que el servidor lo genere
         }
         val msg = JsonObject().apply {
             addProperty("type", "CREATE_GAME")
+            add("payload", payload)
+        }
+
+        wsClient.send(gson.toJson(msg))
+    }
+
+    /**
+     * Unirse a una partida existente (envía JOIN_GAME)
+     */
+    fun joinExistingGame(gameId: String, playerName: String, serverUrl: String? = null) {
+        val pid = currentPlayerId ?: "android-${System.currentTimeMillis()}"
+        currentPlayerId = pid
+
+        wsClient.connect(serverUrl)
+
+        val payload = JsonObject().apply {
+            addProperty("gameId", gameId)
+            addProperty("playerId", pid)
+            addProperty("playerName", playerName)
+        }
+        val msg = JsonObject().apply {
+            addProperty("type", "JOIN_GAME")
             add("payload", payload)
         }
 

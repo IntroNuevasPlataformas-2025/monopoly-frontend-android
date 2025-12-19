@@ -27,11 +27,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.fabrik12.monopolyappwallet.data.SettingsRepository
 import com.fabrik12.monopolyappwallet.viewmodel.SettingsViewModel
 
@@ -50,10 +53,13 @@ fun SettingsScreenContent(
 ) {
     val iconPrimary = colorScheme.primary
 
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Configuración") })
-        }
+        },
+        snackbarHost = { androidx.compose.material3.SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -107,15 +113,29 @@ fun SettingsScreenContent(
             OutlinedTextField(
                 value = serverIpInput.value,
                 onValueChange = { serverIpInput.value = it },
-                placeholder = { Text("WebSocket server IP (ej: ws://10.0.2.2:3000)") },
+                placeholder = { Text("WebSocket server IP (ej: 10.0.2.2:3000 o ws://10.0.2.2:3000)") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                singleLine = true
+                singleLine = true,
+                maxLines = 1
             )
 
+            val scope = rememberCoroutineScope()
+
             Button(
-                onClick = { onSaveServerIp(serverIpInput.value.ifBlank { null }) },
+                onClick = {
+                    val raw = serverIpInput.value.ifBlank { null }
+                    val normalized = raw?.let { if (it.startsWith("ws://") || it.startsWith("wss://")) it else "ws://$it" }
+                    scope.launch {
+                        onSaveServerIp(normalized)
+                        // Mostrar snackbar verde de 2 segundos
+                        val message = "Configuración guardada: ${normalized ?: "(eliminada)"}"
+                        snackbarHostState.showSnackbar(message)
+                        kotlinx.coroutines.delay(2000)
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {

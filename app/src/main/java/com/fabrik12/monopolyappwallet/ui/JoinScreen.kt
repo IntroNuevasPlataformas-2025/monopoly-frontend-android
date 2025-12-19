@@ -146,9 +146,10 @@ fun JoinScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (gameId.value.isNotBlank()) {
-                            // Crear partida localmente sin usar WebSocket (mantener comportamiento previo)
-                            navController.navigate("main_screen/${gameId.value}")
+                        if (playerName.value.isNotBlank()) {
+                            isJoining.value = true
+                            // Crear nueva partida via WebSocket
+                            gameViewModel.joinGame(playerName.value, settingsServerIp)
                         }
                     },
                     modifier = Modifier
@@ -160,6 +161,14 @@ fun JoinScreen(navController: NavHostController) {
                         contentColor = colorScheme.onPrimary
                     )
                 ) {
+                    if (isJoining.value) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = iconPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                     Text(
                         "Crear Partida",
                         style = TextStyle(
@@ -177,8 +186,12 @@ fun JoinScreen(navController: NavHostController) {
                     onClick = {
                         if (playerName.value.isNotBlank()) {
                             isJoining.value = true
-                            // Usar IP configurada si existe, si no usar valor por defecto en GameViewModel/wsClient
-                            gameViewModel.joinGame(playerName.value, settingsServerIp)
+                            // Si se proporcionó gameId, usar JOIN_GAME, de lo contrario CREATE_GAME
+                            if (gameId.value.isNotBlank()) {
+                                gameViewModel.joinExistingGame(gameId.value, playerName.value, settingsServerIp)
+                            } else {
+                                gameViewModel.joinGame(playerName.value, settingsServerIp)
+                            }
                         }
                     },
                     modifier = Modifier
@@ -212,13 +225,12 @@ fun JoinScreen(navController: NavHostController) {
                     )
                 }
 
-                // Navegar automáticamente cuando GameViewModel indique que gameStatus ya no es null
-                val gameStatus by gameViewModel.gameStatus.collectAsState()
-                LaunchedEffect(gameStatus) {
-                    if (gameStatus != null) {
+                // Navegar automáticamente cuando GameViewModel indique que lastGameId ya no es null
+                val lastGameId by gameViewModel.lastGameId.collectAsState()
+                LaunchedEffect(lastGameId) {
+                    if (lastGameId != null) {
                         isJoining.value = false
-                        // Navegar a la pantalla principal. Si el servidor retorna gameId en GameState, preferirlo.
-                        val gid = gameViewModel.gameStatus.value ?: gameId.value.ifBlank { "unknown" }
+                        val gid = lastGameId ?: gameId.value.ifBlank { "unknown" }
                         navController.navigate("main_screen/${gid}")
                     }
                 }
