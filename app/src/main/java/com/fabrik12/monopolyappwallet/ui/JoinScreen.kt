@@ -1,5 +1,6 @@
 package com.fabrik12.monopolyappwallet.ui
 
+import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -35,17 +36,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.ui.theme.*
+import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JoinScreen(navController: NavHostController) {
+fun JoinScreen(
+    navController: NavHostController,
+    gameViewModel: GameViewModel
+) {
+    Log.d("ViernesDebug", "JoinScreen - VM Hash: ${System.identityHashCode(gameViewModel)}")
+
     val playerName = remember { mutableStateOf("") }
     val gameId = remember { mutableStateOf("") }
     val isDarkTheme = isSystemInDarkTheme()
     val settingsViewModel: com.fabrik12.monopolyappwallet.viewmodel.SettingsViewModel = viewModel()
     val settingsServerIp by settingsViewModel.serverIp.collectAsState()
-
-    val gameViewModel: com.fabrik12.monopolyappwallet.viewmodel.GameViewModel = viewModel()
 
     // Local UI state
     val isJoining = remember { androidx.compose.runtime.mutableStateOf(false) }

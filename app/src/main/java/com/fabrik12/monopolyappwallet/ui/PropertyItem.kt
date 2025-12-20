@@ -1,131 +1,81 @@
 package com.fabrik12.monopolyappwallet.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fabrik12.monopolyappwallet.data.PropertyEntity
-import com.fabrik12.monopolyappwallet.data.PropertyColors
+import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
 
-/**
- * Componente que muestra un elemento de propiedad.
- *
- * @param propertyEntity La propiedad a mostrar
- */
 @Composable
-fun PropertyItem(propertyEntity: PropertyEntity, modifier: Modifier = Modifier) {
-    // Construccion de la tarjeta de propiedad
+fun PropertyItem(propertyUi: PropertyUiModel, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Color Box
-            PropertyAvatar(propertyEntity = propertyEntity)
+            // Avatar de color
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(propertyUi.color, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (propertyUi.color == Color.Gray) {
+                    // Icono para utilidades/estaciones si el color es gris
+                    Icon(Icons.Default.QuestionMark, contentDescription = null, tint = Color.White)
+                }
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Informacion con Nombre y Estado
-            // Columna para apilar elementos verticalmente
             Column(modifier = Modifier.weight(1f)) {
-                Text (
-                    text = propertyEntity.name,
+                Text(
+                    text = propertyUi.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                // Mostrar Dueño y Estado
+                val statusText = if (propertyUi.isMortgaged) "HIPOTECADA" else propertyUi.ownerName ?: "Banco"
+                val statusColor = if (propertyUi.isMortgaged) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+
                 Text(
-                    text = propertyEntity.status,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    text = statusText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = statusColor
                 )
             }
 
-            if (propertyEntity.price > 0) {
-                Spacer(modifier = Modifier.width(8.dp))
+            // Columna de valor y casitas
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "$${propertyEntity.price}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "$${propertyUi.price}",
+                    fontWeight = FontWeight.Bold
                 )
+                if (propertyUi.houseCount > 0 || propertyUi.hotelCount > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val icon = if (propertyUi.hotelCount > 0) Icons.Default.Hotel else Icons.Default.Home
+                        val count = if (propertyUi.hotelCount > 0) propertyUi.hotelCount else propertyUi.houseCount
+                        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text("x$count", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             }
         }
-    }
-}
-
-@Composable
-fun PropertyAvatar(propertyEntity: PropertyEntity, modifier: Modifier = Modifier) {
-    val size = 56.dp
-    if (propertyEntity.groupColor != Color.Transparent) {
-        Box(
-            modifier = modifier
-                .size(size)
-                .background(propertyEntity.groupColor, RoundedCornerShape(8.dp))
-        )
-    } else {
-        Icon(
-            imageVector = Icons.Default.QuestionMark,
-            contentDescription = propertyEntity.name,
-            modifier = modifier.size(size).padding(8.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-// --- Previsualización ---
-// Esta preview nos permite diseñar el item de forma aislada.
-@Preview(showBackground = true)
-@Composable
-fun PropertyItemPreview() {
-    val samplePropertyEntity = PropertyEntity(
-        id = 1,
-        name = "Av. Mediterráneo",
-        price = 60,
-        groupColor = PropertyColors.BROWN,
-        status = "Propiedad Tuya"
-    )
-    Box(modifier = Modifier.padding(8.dp)) {
-        PropertyItem(propertyEntity = samplePropertyEntity)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PropertyItemSpecialPreview() {
-    val sampleSpecial = PropertyEntity(
-        id = 2,
-        name = "Arca Comunal",
-        price = 0,
-        groupColor = Color.Transparent,
-        status = "Toma una carta"
-    )
-    Box(modifier = Modifier.padding(8.dp)) {
-        PropertyItem(propertyEntity = sampleSpecial)
     }
 }

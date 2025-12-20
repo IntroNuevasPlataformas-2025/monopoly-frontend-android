@@ -9,7 +9,7 @@ data class PropertyState (
     val ownerId: String?,
     val price: Int,
     val houses: Int = 0,
-    val isMortagaged: Boolean = false,
+    val isMortgaged: Boolean = false,
     val rentPrices: List<Int>? = null,
     val houseCost: Int = 0
 )

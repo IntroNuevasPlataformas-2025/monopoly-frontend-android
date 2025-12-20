@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,16 +25,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.ui.models.MockData
 import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
 import com.fabrik12.monopolyappwallet.ui.models.TransactionType
@@ -229,7 +224,7 @@ fun PropertyCard(property: PropertyUiModel) {
             }
         }
         Text(
-            text = "$${property.value}",
+            text = "$${property.price}",
             fontWeight = FontWeight.Bold,
             color = valueColor,
             fontSize = 16.sp
@@ -358,6 +353,7 @@ fun BottomNavBar() {
 @Composable
 fun GameScreenContent(
     gameId: String?,
+    playerName: String = "Jugador",
     currentBalance: Int?,
     properties: List<PropertyUiModel>,
     transactions: List<TransactionUiModel>,
@@ -374,9 +370,9 @@ fun GameScreenContent(
                 .padding(paddingValues)
         ) {
             GameHeader(
-                playerName = "Jugador 1",
-                cash = 1500,
-                propertyCount = 4
+                playerName = playerName,
+                cash = currentBalance?:0,
+                propertyCount = properties.size
             )
             LazyColumn(
                 modifier = Modifier
@@ -421,12 +417,15 @@ fun GameScreenContent(
 @Composable
 fun GameScreen(
     gameId: String?,
-    gameViewModel: GameViewModel = viewModel()
+    gameViewModel: GameViewModel
 ) {
     val context = LocalContext.current
 
     // VM State
     val balance by gameViewModel.currentBalance.collectAsState()
+    val playerName by gameViewModel.currentPlayerName.collectAsState() // Para el header
+    val myProperties by gameViewModel.myPropertiesUi.collectAsState()
+    val transactions by gameViewModel.recentTransactions.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -461,9 +460,10 @@ fun GameScreen(
 
     GameScreenContent(
         gameId = gameId,
+        playerName = playerName,
         currentBalance = balance,
-        properties = MockData.properties, // Using Mock Data as requested for design focus
-        transactions = MockData.transactions, // Using Mock Data as requested for design focus
+        properties = myProperties,
+        transactions = transactions,
         onStopGame = {
             gameViewModel.stopGameSession()
         }

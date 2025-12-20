@@ -5,11 +5,14 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.fabrik12.monopolyappwallet.data.ColorConverter
 import com.fabrik12.monopolyappwallet.data.SettingsRepository
 import com.fabrik12.monopolyappwallet.service.GameTimerService
 import com.fabrik12.monopolyappwallet.ui.WebSocketClient
 import com.fabrik12.monopolyappwallet.data.models.Player
 import com.fabrik12.monopolyappwallet.data.models.GameState
+import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
+import com.fabrik12.monopolyappwallet.ui.models.TransactionUiModel
 import com.fabrik12.monopolyappwallet.data.models.WebSocketMessage
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -34,11 +37,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _availablePropertiesUI = MutableStateFlow<List<PropertyUI>>(emptyList())
     val availablePropertiesUI: StateFlow<List<PropertyUI>> = _availablePropertiesUI.asStateFlow()
 
+    private var isTimerRunning: Boolean = false
+
     /**
      * Se llama al iniciar una nueva partida para guardar el tiempo de inicio
      */
     fun startGameSession() {
+        if (isTimerRunning) return
+
         viewModelScope.launch {
+            isTimerRunning = true
             // Consultar a DataStore el tiempo actual del sistema
             val storedTime = settingsRepository.gameStartTimeFlow.first()
 
@@ -117,15 +125,33 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _availableProperties = MutableStateFlow<List<String>>(ALL_PROPERTIES)
     val availableProperties: StateFlow<List<String>> = _availableProperties.asStateFlow()
 
+    // Lista de TODAS las propiedades para la pantalla "Propiedades"
+    private val _allPropertiesUi = MutableStateFlow<List<PropertyUiModel>>(emptyList())
+    val allPropertiesUi: StateFlow<List<PropertyUiModel>> = _allPropertiesUi.asStateFlow()
+
     // UI events (errores, notificaciones)
     private val _uiEvents = MutableSharedFlow<String>(replay = 0)
     val uiEvents = _uiEvents.asSharedFlow()
 
+    // ESTADO PARA GAME SCREEN (Propiedades Reales)
+    private val _myPropertiesUi = MutableStateFlow<List<PropertyUiModel>>(emptyList())
+    val myPropertiesUi: StateFlow<List<PropertyUiModel>> = _myPropertiesUi.asStateFlow()
+
+    // ESTADO PARA GAME SCREEN (Historial Real)
+    private val _recentTransactions = MutableStateFlow<List<TransactionUiModel>>(emptyList())
+    val recentTransactions: StateFlow<List<TransactionUiModel>> = _recentTransactions.asStateFlow()
+
     init {
+        Log.d("ViernesDebug", ">>> ViewModel CREADO. Instancia: ${System.identityHashCode(this)}")
         // Colectar game state y eventos de WebSocket
         viewModelScope.launch {
             wsClient.gameState.collectLatest { gs ->
-                if (gs == null) return@collectLatest
+                if (gs == null) {
+                    Log.d("ViernesDebug", ">>> Recibido GameState: NULL")
+                    return@collectLatest
+                }
+
+                Log.d("ViernesDebug", ">>> Recibido GameState. Jugadores: ${gs.players.size}")
 
                 // Datos generales del juego
                 _gameStatus.emit(gs.status)
@@ -142,9 +168,29 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     if (myData != null) {
                         _currentBalance.emit(myData.balance)
                         _currentPlayerName.emit(myData.name)
-                        _myProperties.emit(myData.properties)
+                        // _myProperties.emit(myData.properties)
+                        // --- NUEVO: Mapeo de Propiedades para la UI ---
+                        val myPropsIds = myData.properties // Lista de Strings (IDs)
+                        val uiProps = myPropsIds.mapNotNull { propId ->
+                            val propDetails = gs.properties[propId]
+                            propDetails?.let { p ->
+                                // Usamos ColorConverter para obtener el color real
+                                val color = ColorConverter.getColor(p.id)
+                                PropertyUiModel(
+                                    color = color,
+                                    name = p.name,
+                                    isMortgaged = p.isMortgaged,
+                                    hotelCount = if (p.houses == 5) 1 else 0, // Asumiendo 5 es hotel
+                                    houseCount = if (p.houses < 5) p.houses else 0,
+                                    price = p.price,
+                                    id = p.id
+                                )
+                            }
+                        }
+                        _myPropertiesUi.emit(uiProps)
                     }
                 } else {
+                    Log.e("ViernesDebug", ">>> ¡Alerta! Recibo datos pero currentPlayerId es NULL")
                     _currentBalance.emit(null)
                     _myProperties.emit(emptyList())
                 }
@@ -156,6 +202,41 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                         .filter { it.ownerId == null || it.ownerId == "bank" }
                         .map { PropertyUI(it.id, it.name, it.price) }
                     _availablePropertiesUI.emit(availablesList)
+                }
+
+                // MAPEO DE TODAS LAS PROPIEDADES
+                val allPropsList = gs.properties.values.map { p ->
+                    val color = ColorConverter.getColor(p.id)
+                    // Buscar nombre del dueño
+                    val ownerName = if (p.ownerId != null && p.ownerId != "bank") {
+                        gs.players[p.ownerId]?.name ?: "Jugador Desconocido"
+                    } else {
+                        "Banco"
+                    }
+
+                    PropertyUiModel(
+                        id = p.id,
+                        name = p.name,
+                        color = color,
+                        price = p.price,
+                        houseCount = if (p.houses < 5) p.houses else 0,
+                        hotelCount = if (p.houses == 5) 1 else 0,
+                        isMortgaged = p.isMortgaged,
+                        ownerName = ownerName
+                    )
+                }
+
+                // 1. Emitir TODAS para la pantalla de lista
+                _allPropertiesUi.emit(allPropsList)
+
+                // 2. Filtrar las de pantalla de juego (Home)
+                val myPid = currentPlayerId
+                if (myPid != null) {
+                    val myProps = allPropsList.filter {
+                        // Verificamos contra el ID del dueño en el GameState original o el mapeado
+                        gs.properties[it.id]?.ownerId == myPid
+                    }
+                    _myPropertiesUi.emit(myProps)
                 }
             }
         }
@@ -242,6 +323,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             addProperty("toPlayerId", toPlayerId)
             addProperty("amount", amount)
             addProperty("source", pid)
+            addProperty("playerId", pid)
         }
         val msg = JsonObject().apply {
             addProperty("type", "PROCESS_TRANSACTION")
@@ -332,35 +414,40 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Solicita construir una casa/hotel
-     * Requisito: tener monopolio del color
+     * Solicitar construcción de casa en una propiedad
      */
     fun requestBuildHouse(propertyId: String) {
-        val pid = currentPlayerId ?: run {
-            viewModelScope.launch { _uiEvents.emit("Error: No has iniciado sesion") }
+        val tag = "MonopolyBuild"
+        val pid = currentPlayerId
+
+        if (pid == null) {
+            viewModelScope.launch { _uiEvents.emit("Error: No identificado") }
             return
         }
 
+        // 1. Validación Previa
         val currentState = wsClient.gameState.value
         val property = currentState?.properties?.get(propertyId)
 
         if (property == null) {
-            viewModelScope.launch { _uiEvents.emit("Error: Propiedad no encontrada") }
+            Log.e(tag, "Propiedad no encontrada: $propertyId")
             return
         }
 
-        val constructionCost = property.houseCost
-
-        val myBalance = _currentBalance.value ?: 0
-        if (myBalance < constructionCost) {
-            viewModelScope.launch { _uiEvents.emit("Error: Fondos insuficientes para construir en ${property.name}") }
+        // Regla de Monopolio (Client-side check rápido)
+        // Nota: El servidor hace el chequeo real, pero esto ayuda al UX
+        if (property.ownerId != pid) {
+            viewModelScope.launch { _uiEvents.emit("No eres el dueño de ${property.name}") }
             return
         }
 
+        Log.d(tag, "Solicitando construir en: ${property.name}. Costo: ${property.houseCost}")
+
+        // 2. Construir Payload
         val payload = JsonObject().apply {
-            addProperty("playerId", pid)
+            addProperty("playerId", pid) // ¡CRÍTICO! El servidor lo necesita
             addProperty("propertyId", propertyId)
-            addProperty("amount", constructionCost)
+            addProperty("amount", property.houseCost) // Asegúrate que sea Int
             addProperty("action", "build")
         }
 
@@ -369,7 +456,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             add("payload", payload)
         }
 
-        wsClient.send(gson.toJson(msg))
+        // 3. Enviar
+        val jsonStr = gson.toJson(msg)
+        Log.d(tag, "Enviando: $jsonStr")
+        wsClient.send(jsonStr)
     }
 
     /*
@@ -387,3 +477,4 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
 // Modelo UI simplificado de propiedad
 data class PropertyUI(val id: String, val name: String, val price: Int)
+

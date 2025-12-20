@@ -5,11 +5,12 @@ import androidx.compose.ui.graphics.Color
 data class PropertyUiModel(
     val id: String,
     val name: String,
+    val price: Int,
     val color: Color,
     val houseCount: Int = 0,
     val hotelCount: Int = 0,
     val isMortgaged: Boolean = false,
-    val value: Int
+    val ownerName: String? = null
 )
 
 enum class TransactionType {
@@ -32,21 +33,21 @@ object MockData {
             name = "Avenida Principal",
             color = Color(0xFF3B82F6), // Blue
             hotelCount = 1,
-            value = 400
+            price = 400
         ),
         PropertyUiModel(
             id = "2",
             name = "Plaza Central",
             color = Color(0xFFEF4444), // Red
             houseCount = 3,
-            value = 250
+            price = 250
         ),
         PropertyUiModel(
             id = "3",
             name = "Paseo del Río",
             color = Color(0xFFFB923C), // Orange
             isMortgaged = true,
-            value = 120
+            price = 120
         )
     )
 

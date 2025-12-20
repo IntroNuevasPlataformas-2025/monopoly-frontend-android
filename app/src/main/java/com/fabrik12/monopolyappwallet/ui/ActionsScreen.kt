@@ -58,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.data.models.Player
+import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
 import com.fabrik12.monopolyappwallet.ui.theme.*
 import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 import com.fabrik12.monopolyappwallet.viewmodel.PropertyUI
@@ -80,6 +81,8 @@ enum class ActionType {
 fun ActionsScreen(
     gameViewModel: GameViewModel
 ) {
+    Log.d("ViernesDebug", "MainScreen - VM Hash: ${System.identityHashCode(gameViewModel)}")
+
     var showBottomSheet by remember { mutableStateOf(false) }
     var currentAction by remember { mutableStateOf(ActionType.NONE) }
     var showSuccessAnimation by remember { mutableStateOf(false) }
@@ -261,7 +264,7 @@ fun ActionsScreen(
                             BuyPropertyForm(
                                 availablePropertiesFlow = gameViewModel.availablePropertiesUI,
                                 onBuyClicked = { propertyId ->
-                                    gameViewModel.requestBuyProperty(propertyId) // ¡Nueva función!
+                                    gameViewModel.requestBuyProperty(propertyId)
                                     scope.launch { sheetState.hide() }.invokeOnCompletion { showBottomSheet = false }
                                 }
                             )
@@ -269,7 +272,7 @@ fun ActionsScreen(
                         ActionType.BUILD -> {
                             SheetHeader("Construir Mejoras")
                             BuildHouseForm(
-                                myPropertiesFlow = gameViewModel.myProperties, // Solo MIS propiedades
+                                myPropertiesFlow = gameViewModel.myPropertiesUi, // Solo MIS propiedades
                                 onBuildClicked = { propertyId ->
                                     gameViewModel.requestBuildHouse(propertyId)
                                     scope.launch { sheetState.hide() }.invokeOnCompletion { showBottomSheet = false }
@@ -440,12 +443,12 @@ fun BuyPropertyForm(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuildHouseForm(
-    myPropertiesFlow: StateFlow<List<String>>,
+    myPropertiesFlow: StateFlow<List<PropertyUiModel>>,
     onBuildClicked: (String) -> Unit
 ) {
     val myProps by myPropertiesFlow.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-    var selectedProp by remember { mutableStateOf<String?>(null) }
+    var selectedProp by remember { mutableStateOf<PropertyUiModel?>(null) }
 
     Column {
         Text("Selecciona una de TUS propiedades para añadir una casa.", style = MaterialTheme.typography.bodyMedium)
@@ -453,7 +456,7 @@ fun BuildHouseForm(
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
-                value = selectedProp ?: "Mis Propiedades",
+                value = selectedProp?.let { "${it.name} ($${it.price})" } ?: "Mis Propiedades",
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -463,17 +466,20 @@ fun BuildHouseForm(
                 if (myProps.isEmpty()) {
                     DropdownMenuItem(text = { Text("No tienes propiedades aún") }, onClick = {})
                 }
-                myProps.forEach { propId ->
+                myProps.forEach { prop ->
                     DropdownMenuItem(
-                        text = { Text(propId) },
-                        onClick = { selectedProp = propId; expanded = false }
+                        text = { Text("${prop.name} - $${prop.price}") },
+                        onClick = {
+                            selectedProp = prop //Guardamos todo el objeto
+                            expanded = false
+                        }
                     )
                 }
             }
         }
         Spacer(Modifier.height(24.dp))
         Button(
-            onClick = { selectedProp?.let { onBuildClicked(it) } },
+            onClick = { selectedProp?.let { onBuildClicked(it.id) } },
             modifier = Modifier.fillMaxWidth(),
             enabled = selectedProp != null
         ) { Text("Solicitar Construcción") }

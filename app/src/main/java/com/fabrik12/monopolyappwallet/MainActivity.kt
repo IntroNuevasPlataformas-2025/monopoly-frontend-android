@@ -24,6 +24,7 @@ import com.fabrik12.monopolyappwallet.ui.theme.MonopolyAppWalletTheme
 
 import com.fabrik12.monopolyappwallet.ui.JoinScreen
 import com.fabrik12.monopolyappwallet.ui.MainScreen
+import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 import com.fabrik12.monopolyappwallet.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {
@@ -31,6 +32,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             // Obtener o crear la instancia del view model
+            val globalGameViewModel: GameViewModel = viewModel()
+
             val settingsViewModel: SettingsViewModel = viewModel()
             val themePreference by settingsViewModel.themePreference.collectAsState()
 
@@ -52,11 +55,17 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(navController = navController, startDestination = "join_screen") {
                         composable("join_screen") {
-                            JoinScreen(navController = navController)
+                            JoinScreen(
+                                navController = navController,
+                                gameViewModel = globalGameViewModel
+                            )
                         }
                         composable("main_screen/{gameId}") { backStackEntry ->
                             val gameId = backStackEntry.arguments?.getString("gameId")
-                            MainScreen(gameId = gameId) // Llamada al nuevo composable
+                            MainScreen(
+                                gameId = gameId,
+                                gameViewModel = globalGameViewModel
+                            ) // Llamada al nuevo composable
                         }
                         // Allow navigating directly to settings from JoinScreen
                         composable("settings_screen") {

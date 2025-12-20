@@ -1,5 +1,6 @@
 package com.fabrik12.monopolyappwallet.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -25,12 +26,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 
 @Composable
-fun MainScreen(gameId: String?) {
+fun MainScreen(
+    gameId: String?,
+    gameViewModel: GameViewModel
+) {
+    Log.d("ViernesDebug", "MainScreen - VM Hash: ${System.identityHashCode(gameViewModel)}")
+
     // Navegacion interna
     val innerNavController = rememberNavController()
-
-    // ViewModel compartido
-    val sharedViewModel: GameViewModel = viewModel()
 
     // Lista de pantallas para barra inferior
     // Updated order based on design reference: Home, Properties, Actions, Settings
@@ -99,15 +102,17 @@ fun MainScreen(gameId: String?) {
                 // Pasar el gameId que necesita
                 GameScreen(
                     gameId = gameId,
-                    gameViewModel = sharedViewModel
+                    gameViewModel = gameViewModel
                 )
             }
             composable(Screen.Properties.route) {
-                PropertiesScreen()
+                PropertiesScreen(
+                    gameViewModel = gameViewModel
+                )
             }
             composable(Screen.Actions.route) {
                 ActionsScreen(
-                    gameViewModel = sharedViewModel
+                    gameViewModel = gameViewModel
                 )
             }
             composable(Screen.Settings.route) {

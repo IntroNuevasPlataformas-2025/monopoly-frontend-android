@@ -19,15 +19,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.data.PropertyEntity
 import com.fabrik12.monopolyappwallet.data.mockPropertyEntityList
+import com.fabrik12.monopolyappwallet.ui.models.PropertyUiModel
+import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 import com.fabrik12.monopolyappwallet.viewmodel.PropertiesViewModel
 
 @Composable
-fun PropertiesScreen() {
-    // Obtener el viewModel
-    val viewModel: PropertiesViewModel = viewModel()
-
+fun PropertiesScreen(
+    gameViewModel: GameViewModel
+) {
     // Observar los cambios en la lista de propiedades
-    val propertiesList by viewModel.properties.collectAsState()
+    val propertiesList by gameViewModel.allPropertiesUi.collectAsState()
 
     // Solo pasar el estado
     PropertiesContent(propertiesList = propertiesList)
@@ -38,7 +39,7 @@ fun PropertiesScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertiesContent(
-    propertiesList: List<PropertyEntity>,
+    propertiesList: List<PropertyUiModel>,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -52,13 +53,14 @@ fun PropertiesContent(
             modifier = Modifier.padding(innerPadding)
         ) {
             items(propertiesList) { property ->
-                PropertyItem(propertyEntity = property)
+                PropertyItem(propertyUi = property)
             }
         }
         Spacer(modifier = Modifier.height(24.dp)) // Espacio final
 
     }
 }
+/*
 // --- Previsualización ---
 @Preview(showBackground = true)
 @Composable
@@ -71,3 +73,4 @@ fun PropertiesScreenPreview() {
 
     PropertiesContent(propertiesList = previewData)
 }
+*/
