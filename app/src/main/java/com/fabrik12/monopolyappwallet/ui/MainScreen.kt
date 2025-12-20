@@ -21,11 +21,16 @@ import com.fabrik12.monopolyappwallet.navigation.Screen
 import com.fabrik12.monopolyappwallet.ui.theme.MutedLight
 import com.fabrik12.monopolyappwallet.ui.theme.MutedDark
 import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
 
 @Composable
 fun MainScreen(gameId: String?) {
     // Navegacion interna
     val innerNavController = rememberNavController()
+
+    // ViewModel compartido
+    val sharedViewModel: GameViewModel = viewModel()
 
     // Lista de pantallas para barra inferior
     // Updated order based on design reference: Home, Properties, Actions, Settings
@@ -57,9 +62,6 @@ fun MainScreen(gameId: String?) {
                         selected = selected,
                         onClick = {
                             innerNavController.navigate(screen.route) {
-                                // Acceder al destino inicial del gráfico para evitar acumular
-                                // una gran cantidad de destinos en la pila de tareas
-                                // a medida que los usuarios seleccionan elementos.
                                 popUpTo(innerNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -95,13 +97,18 @@ fun MainScreen(gameId: String?) {
         ) {
             composable(Screen.Game.route) {
                 // Pasar el gameId que necesita
-                GameScreen(gameId = gameId)
+                GameScreen(
+                    gameId = gameId,
+                    gameViewModel = sharedViewModel
+                )
             }
             composable(Screen.Properties.route) {
                 PropertiesScreen()
             }
             composable(Screen.Actions.route) {
-                ActionsScreen()
+                ActionsScreen(
+                    gameViewModel = sharedViewModel
+                )
             }
             composable(Screen.Settings.route) {
                 SettingsScreen()

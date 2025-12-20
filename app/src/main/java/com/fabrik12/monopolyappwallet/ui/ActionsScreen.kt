@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +24,10 @@ import androidx.compose.material.icons.filled.AddHome
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.RealEstateAgent // Requires extended icons
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -52,9 +56,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fabrik12.monopolyappwallet.data.models.Player
 import com.fabrik12.monopolyappwallet.ui.theme.*
 import com.fabrik12.monopolyappwallet.viewmodel.GameViewModel
+import com.fabrik12.monopolyappwallet.viewmodel.PropertyUI
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
@@ -62,7 +68,7 @@ import kotlinx.coroutines.flow.collectLatest
 // Enum to identify which action is selected
 enum class ActionType {
     PAY_PLAYER,
-    BANK_OPERATIONS,
+    BUY_PROPERTY,
     BUILD,
     MORTGAGE,
     UNMORTGAGE,
@@ -71,19 +77,19 @@ enum class ActionType {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActionsScreen() {
+fun ActionsScreen(
+    gameViewModel: GameViewModel
+) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var currentAction by remember { mutableStateOf(ActionType.NONE) }
     var showSuccessAnimation by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
-    val gameViewModel: GameViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-
     // Observar eventos para mostrar animacion cuando recibimos success
     LaunchedEffect(Unit) {
         gameViewModel.uiEvents.collectLatest { ev ->
-            if (ev == "PAYMENT_SUCCESS" || ev == "PURCHASE_SUCCESS") {
+            if (ev.contains("SUCESS", ignoreCase = true) || ev.contains("EXITO", ignoreCase = true)) {
                 showSuccessAnimation = true
             }
         }
@@ -91,7 +97,7 @@ fun ActionsScreen() {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Acciones") })
+            TopAppBar(title = { Text("Panel de Acciones") })
         }
     ) { innerPadding ->
         Box(
@@ -105,73 +111,90 @@ fun ActionsScreen() {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Seccion de dinero
+                item { CabeceraSeccion("Finanzas") }
+
+                // NUEVO: Tarjeta de Identidad
                 item {
-                    Text(
-                        text = "Transacciones",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
+                    val name by gameViewModel.currentPlayerName.collectAsState()
+                    val balance by gameViewModel.currentBalance.collectAsState()
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Jugador: $name", style = MaterialTheme.typography.titleMedium)
+                            Text("Saldo: $${balance ?: "---"}", style = MaterialTheme.typography.headlineMedium)
+                        }
+                    }
                 }
+
                 item {
                     ActionCard(
                         title = "Pagar a Jugador",
                         icon = Icons.Default.Groups,
-                        backgroundColorLight = ActionBlueBgLight,
-                        iconColorLight = ActionBlueTextLight,
-                        backgroundColorDark = ActionBlueBgDark,
-                        iconColorDark = ActionBlueTextDark,
+                        colors = ActionColors(
+                            ActionBlueBgLight,
+                            ActionBlueTextLight,
+                            ActionBlueBgDark,
+                            ActionBlueTextDark
+                        ),
                         onClick = {
                             currentAction = ActionType.PAY_PLAYER
                             showBottomSheet = true
                         }
                     )
                 }
+
                 item {
                     ActionCard(
-                        title = "Operaciones con la Banca",
-                        icon = Icons.Default.AccountBalance,
-                        backgroundColorLight = ActionGreenBgLight,
-                        iconColorLight = ActionGreenTextLight,
-                        backgroundColorDark = ActionGreenBgDark,
-                        iconColorDark = ActionGreenTextDark,
+                        title = "Comprar Propiedades", // Reemplaza a "Operaciones con Banca"
+                        icon = Icons.Default.Storefront, // Icono de tienda
+                        colors = ActionColors(
+                            ActionGreenBgLight,
+                            ActionGreenTextLight,
+                            ActionGreenBgDark,
+                            ActionGreenTextDark
+                        ),
                         onClick = {
-                            currentAction = ActionType.BANK_OPERATIONS
+                            currentAction = ActionType.BUY_PROPERTY
                             showBottomSheet = true
                         }
                     )
                 }
 
-                item {
-                    Text(
-                        text = "Propiedades",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                    )
-                }
+                // SECCION DE GESTION
+                item { CabeceraSeccion("Mis Propiedades") }
 
                 item {
                     ActionCard(
-                        title = "Construir",
-                        // Fallback to Home if AddHome is missing, but it should be in extended
+                        title = "Construir (Casas/Hoteles)",
                         icon = Icons.Default.AddHome,
-                        backgroundColorLight = ActionYellowBgLight,
-                        iconColorLight = ActionYellowTextLight,
-                        backgroundColorDark = ActionYellowBgDark,
-                        iconColorDark = ActionYellowTextDark,
+                        colors = ActionColors(
+                            ActionYellowBgLight,
+                            ActionYellowTextLight,
+                            ActionYellowBgDark,
+                            ActionYellowTextDark
+                        ),
                         onClick = {
                             currentAction = ActionType.BUILD
                             showBottomSheet = true
                         }
                     )
                 }
+
+                // Botones Hipotecar/Deshipotecar (Placeholders por ahora)
                 item {
                     ActionCard(
                         title = "Hipotecar",
                         icon = Icons.Default.Gavel,
-                        backgroundColorLight = ActionRedBgLight,
-                        iconColorLight = ActionRedTextLight,
-                        backgroundColorDark = ActionRedBgDark,
-                        iconColorDark = ActionRedTextDark,
+                        colors = ActionColors(
+                            ActionRedBgLight,
+                            ActionRedTextLight,
+                            ActionRedBgDark,
+                            ActionRedTextDark
+                        ),
                         onClick = {
                             currentAction = ActionType.MORTGAGE
                             showBottomSheet = true
@@ -182,10 +205,12 @@ fun ActionsScreen() {
                     ActionCard(
                         title = "Deshipotecar",
                         icon = Icons.Default.RealEstateAgent,
-                        backgroundColorLight = ActionPurpleBgLight,
-                        iconColorLight = ActionPurpleTextLight,
-                        backgroundColorDark = ActionPurpleBgDark,
-                        iconColorDark = ActionPurpleTextDark,
+                        colors = ActionColors(
+                            ActionPurpleBgLight,
+                            ActionPurpleTextLight,
+                            ActionPurpleBgDark,
+                            ActionPurpleTextDark
+                        ),
                         onClick = {
                             currentAction = ActionType.UNMORTGAGE
                             showBottomSheet = true
@@ -193,29 +218,17 @@ fun ActionsScreen() {
                     )
                 }
 
-                // TODO: Implement Community Chest and Chance screens later
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Nota: Arca Comunal y Casualidad se implementarán próximamente.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                item {
-                     Spacer(modifier = Modifier.height(80.dp)) // Bottom padding
-                }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
 
-            // Animation Overlay
-            TransactionSuccessAnimation(
-                visible = showSuccessAnimation,
-                onAnimationFinished = {
-                    showSuccessAnimation = false
-                },
-                modifier = Modifier.align(Alignment.Center)
-            )
+            // Animación de éxito superpuesta
+            if (showSuccessAnimation) {
+                TransactionSuccessAnimation(
+                    visible = showSuccessAnimation,
+                    onAnimationFinished = { showSuccessAnimation = false },
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
 
         if (showBottomSheet) {
@@ -234,56 +247,36 @@ fun ActionsScreen() {
                 ) {
                     when (currentAction) {
                         ActionType.PAY_PLAYER -> {
-                            Text(
-                                "Pagar a Jugador",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
+                            SheetHeader("Realizar Pago")
                             PayPlayerForm(
-                                onPayClicked = { toPlayerId, amount ->
-                                    // Validar monto y enviar pago
-                                    if (amount <= 0) return@PayPlayerForm
-                                    gameViewModel.sendPayment(amount, toPlayerId)
-                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                        if (!sheetState.isVisible) {
-                                            showBottomSheet = false
-                                            // showSuccessAnimation is triggered by uiEvents
-                                        }
-                                    }
-                                },
-                                playersFlow = gameViewModel.players
-                            )
-                        }
-                        ActionType.BANK_OPERATIONS -> {
-                             PlaceholderActionContent("Operaciones con la Banca")
-                        }
-                        ActionType.BUILD -> {
-                             Text(
-                                "Comprar Propiedad",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            BuyPropertyForm(
-                                availablePropertiesFlow = gameViewModel.availableProperties,
-                                onBuyClicked = { propertyId ->
-                                    if (propertyId.isBlank()) return@BuyPropertyForm
-                                    gameViewModel.buyProperty(propertyId)
-                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                        if (!sheetState.isVisible) {
-                                            showBottomSheet = false
-                                            // success animation will be triggered from uiEvents
-                                        }
-                                    }
+                                playersFlow = gameViewModel.players,
+                                onPayClicked = { targetId, amount ->
+                                    gameViewModel.sendPayment(amount, targetId)
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion { showBottomSheet = false }
                                 }
                             )
                         }
-                        ActionType.MORTGAGE -> {
-                             PlaceholderActionContent("Hipotecar Propiedad")
+                        ActionType.BUY_PROPERTY -> {
+                            SheetHeader("Comprar Propiedad")
+                            BuyPropertyForm(
+                                availablePropertiesFlow = gameViewModel.availablePropertiesUI,
+                                onBuyClicked = { propertyId ->
+                                    gameViewModel.requestBuyProperty(propertyId) // ¡Nueva función!
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion { showBottomSheet = false }
+                                }
+                            )
                         }
-                        ActionType.UNMORTGAGE -> {
-                             PlaceholderActionContent("Deshipotecar Propiedad")
+                        ActionType.BUILD -> {
+                            SheetHeader("Construir Mejoras")
+                            BuildHouseForm(
+                                myPropertiesFlow = gameViewModel.myProperties, // Solo MIS propiedades
+                                onBuildClicked = { propertyId ->
+                                    gameViewModel.requestBuildHouse(propertyId)
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion { showBottomSheet = false }
+                                }
+                            )
                         }
-                        else -> {}
+                        else -> PlaceholderActionContent("En construcción...")
                     }
                 }
             }
@@ -291,207 +284,205 @@ fun ActionsScreen() {
     }
 }
 
+// --- COMPONENTES AUXILIARES ---
+
 @Composable
-fun ActionCard(
-    title: String,
-    icon: ImageVector,
-    backgroundColorLight: Color,
-    iconColorLight: Color,
-    backgroundColorDark: Color,
-    iconColorDark: Color,
-    onClick: () -> Unit
-) {
+fun CabeceraSeccion(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+fun SheetHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.headlineSmall,
+        modifier = Modifier.padding(bottom = 16.dp)
+    )
+}
+
+// Clase auxiliar para pasar colores más limpio
+data class ActionColors(val bgLight: Color, val textLight: Color, val bgDark: Color, val textDark: Color)
+
+@Composable
+fun ActionCard(title: String, icon: ImageVector, colors: ActionColors, onClick: () -> Unit) {
     val isDark = isSystemInDarkTheme()
-    val backgroundColor = if (isDark) backgroundColorDark else backgroundColorLight
-    val iconColor = if (isDark) iconColorDark else iconColorLight
-    val borderColor = if (isDark) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outline
+    val bg = if (isDark) colors.bgDark else colors.bgLight
+    val textC = if (isDark) colors.textDark else colors.textLight
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) // Fondo sutil
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(backgroundColor),
+                .background(bg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = iconColor,
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(imageVector = icon, contentDescription = null, tint = textC, modifier = Modifier.size(24.dp))
         }
-        Spacer(modifier = Modifier.size(16.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
-@Composable
-fun PlaceholderActionContent(title: String) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Text(
-            text = "Funcionalidad no implementada aún.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
+// --- FORMULARIOS ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PayPlayerForm(
-    onPayClicked: (toPlayerId: String?, amount: Int) -> Unit,
-    playersFlow: StateFlow<List<Player>>
-){
-    var selectedPlayer by remember { mutableStateOf<String?>(null) }
-    var amountToPay by remember { mutableStateOf("")}
-    var isDropdownExpanded by remember { mutableStateOf(false) }
+    playersFlow: StateFlow<List<Player>>,
+    onPayClicked: (String?, Int) -> Unit
+) {
+    var amount by remember { mutableStateOf("") }
+    var selectedPlayerId by remember { mutableStateOf<String?>(null) }
+
+    // Lógica del Dropdown simplificada
     val players by playersFlow.collectAsState()
-    val playersLabels = players.map { it.name }.ifEmpty { listOf("No players") }
+    var expanded by remember { mutableStateOf(false) }
+    val selectedName = players.find { it.id == selectedPlayerId }?.name ?: "Seleccionar Jugador"
 
-    Column( // Changed Row to Column for better mobile layout in bottom sheet if needed, but original was Row.
-            // The original PayPlayerForm had a Row with Dropdown and Amount. Let's keep it similar but adapted.
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-                    ExposedDropdownMenuBox(
-                expanded = isDropdownExpanded,
-                onExpandedChange = { isDropdownExpanded = it },
-                modifier = Modifier.weight(1f)
-            ) {
-                OutlinedTextField(
-                    value = selectedPlayer ?: "Select Player",
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true)
-                )
-
-                ExposedDropdownMenu(
-                    expanded = isDropdownExpanded,
-                    onDismissRequest = { isDropdownExpanded = false }
-                ) {
-                    players.forEach { player ->
-                        DropdownMenuItem(
-                            text = { Text(player.name) },
-                            onClick = {
-                                selectedPlayer = player.id
-                                isDropdownExpanded = false
-                            }
-                        )
-                    }
+    Column {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = selectedName,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                players.forEach { p ->
+                    DropdownMenuItem(
+                        text = { Text(p.name) },
+                        onClick = { selectedPlayerId = p.id; expanded = false }
+                    )
                 }
             }
-            OutlinedTextField(
-                value = amountToPay,
-                onValueChange = { amountToPay = it },
-                label = { Text("Amount") },
-                modifier = Modifier.weight(0.7f)
-            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Boton principal
-        Button(
-            onClick = {
-                val amt = amountToPay.toIntOrNull() ?: 0
-                Log.d("ActionsScreen", "Boton presionado: PAGAR A JUGADOR. Jugador: $selectedPlayer, Cantidad: $amt")
-                if (amt > 0) {
-                    onPayClicked(selectedPlayer, amt)
-                }
-            },
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = amount,
+            onValueChange = { if (it.all { char -> char.isDigit() }) amount = it },
+            label = { Text("Monto ($)") },
             modifier = Modifier.fillMaxWidth()
-        ){
-            Text("Pagar Jugador")
-        }
+        )
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { onPayClicked(selectedPlayerId, amount.toIntOrNull() ?: 0) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = amount.isNotEmpty()
+        ) { Text("Enviar Pago") }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuyPropertyForm(
-    availablePropertiesFlow: kotlinx.coroutines.flow.StateFlow<List<String>>,
-    onBuyClicked: (propertyId: String) -> Unit
+    availablePropertiesFlow: StateFlow<List<PropertyUI>>,
+    onBuyClicked: (String) -> Unit
 ) {
-    var selectedProperty by remember { mutableStateOf<String?>(null) }
-    var isDropdownExpanded by remember { mutableStateOf(false) }
-
     val available by availablePropertiesFlow.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = isDropdownExpanded,
-            onExpandedChange = { isDropdownExpanded = it }
-        ) {
+    var selectedProp by remember { mutableStateOf<PropertyUI?>(null) }
+    Column {
+        Text("Selecciona una propiedad disponible para enviar la solicitud de compra al banquero.", style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(16.dp))
+
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
-                value = selectedProperty ?: "Select Property",
+                // Mostramos el NOMBRE BONITO, o el placeholder
+                value = selectedProp?.let { "${it.name} ($${it.price})" } ?: "Seleccionar Propiedad",
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true)
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
             )
-
-            ExposedDropdownMenu(
-                expanded = isDropdownExpanded,
-                onDismissRequest = { isDropdownExpanded = false }
-            ) {
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                if (available.isEmpty()) {
+                    DropdownMenuItem(text = { Text("No hay propiedades disponibles") }, onClick = {})
+                }
                 available.forEach { prop ->
                     DropdownMenuItem(
-                        text = { Text(prop) },
+                        // Mostramos Nombre y Precio en la lista
+                        text = { Text("${prop.name} - $${prop.price}") },
                         onClick = {
-                            selectedProperty = prop
-                            isDropdownExpanded = false
+                            selectedProp = prop // Guardamos todo el objeto
+                            expanded = false
                         }
                     )
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(Modifier.height(24.dp))
         Button(
-            onClick = {
-                val prop = selectedProperty ?: ""
-                if (prop.isNotBlank()) onBuyClicked(prop)
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Comprar Propiedad")
-        }
+            // Al hacer click, enviamos el ID técnico
+            onClick = { selectedProp?.let { onBuyClicked(it.id) } },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = selectedProp != null
+        ) { Text("Solicitar Compra") }
+
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActionsScreenPreview() {
-    ActionsScreen()
+fun BuildHouseForm(
+    myPropertiesFlow: StateFlow<List<String>>,
+    onBuildClicked: (String) -> Unit
+) {
+    val myProps by myPropertiesFlow.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    var selectedProp by remember { mutableStateOf<String?>(null) }
+
+    Column {
+        Text("Selecciona una de TUS propiedades para añadir una casa.", style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(16.dp))
+
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = selectedProp ?: "Mis Propiedades",
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                if (myProps.isEmpty()) {
+                    DropdownMenuItem(text = { Text("No tienes propiedades aún") }, onClick = {})
+                }
+                myProps.forEach { propId ->
+                    DropdownMenuItem(
+                        text = { Text(propId) },
+                        onClick = { selectedProp = propId; expanded = false }
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = { selectedProp?.let { onBuildClicked(it) } },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = selectedProp != null
+        ) { Text("Solicitar Construcción") }
+    }
+}
+
+@Composable
+fun PlaceholderActionContent(msg: String) {
+    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+        Text(msg, color = Color.Gray)
+    }
 }

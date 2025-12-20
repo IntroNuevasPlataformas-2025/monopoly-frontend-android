@@ -27,6 +27,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private val settingsRepository = SettingsRepository(application)
 
+    // Estados de jugador
+    private val _currentPlayerName = MutableStateFlow<String>("Cargando...")
+    val currentPlayerName: StateFlow<String> = _currentPlayerName.asStateFlow()
+
+    private val _availablePropertiesUI = MutableStateFlow<List<PropertyUI>>(emptyList())
+    val availablePropertiesUI: StateFlow<List<PropertyUI>> = _availablePropertiesUI.asStateFlow()
+
     /**
      * Se llama al iniciar una nueva partida para guardar el tiempo de inicio
      */
@@ -78,6 +85,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().startService(intent)
     }
 
+    // ============================================================
+
     // WebSocket client (creado si no hay DI). No conectar todavía: se conectará cuando se una al juego.
     private val wsClient: WebSocketClient = WebSocketClient.createDefault()
     private val gson = Gson()
@@ -116,29 +125,38 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         // Colectar game state y eventos de WebSocket
         viewModelScope.launch {
             wsClient.gameState.collectLatest { gs ->
-                // Actualizar status
-                _gameStatus.emit(gs?.status)
-                // Actualizar lastGameId
-                _lastGameId.emit(gs?.gameId)
+                if (gs == null) return@collectLatest
+
+                // Datos generales del juego
+                _gameStatus.emit(gs.status)
+                _lastGameId.emit(gs.gameId)
 
                 // Actualizar lista de jugadores
-                _players.emit(gs?.players ?: emptyList())
+                val playersList = gs.players.values.toList()
+                _players.emit(playersList)
 
-                // Actualizar propiedades y balance del jugador actual
+                // Actualizar propiedades y balance del jugador actual (El yo)
                 val pid = currentPlayerId
-                if (pid != null && gs != null) {
-                    val player = gs.players.find { it.id == pid }
-                    _currentBalance.emit(player?.balance)
-                    _myProperties.emit(player?.properties ?: emptyList())
-                } else if (pid == null) {
-                    // Si no hay playerId aún, dejar valores nulos/vacíos
+                if (pid != null) {
+                    val myData = gs.players[pid]
+                    if (myData != null) {
+                        _currentBalance.emit(myData.balance)
+                        _currentPlayerName.emit(myData.name)
+                        _myProperties.emit(myData.properties)
+                    }
+                } else {
                     _currentBalance.emit(null)
                     _myProperties.emit(emptyList())
                 }
 
-                // Calcular propiedades disponibles (no compradas)
-                val owned = gs?.players?.flatMap { it.properties }?.toSet() ?: emptySet()
-                _availableProperties.emit(ALL_PROPERTIES.filter { !owned.contains(it) })
+                val serverProps = gs.properties.values
+                if (serverProps.isNotEmpty()) {
+                    // Las Disponibles
+                    val availablesList = serverProps
+                        .filter { it.ownerId == null || it.ownerId == "bank" }
+                        .map { PropertyUI(it.id, it.name, it.price) }
+                    _availablePropertiesUI.emit(availablesList)
+                }
             }
         }
 
@@ -159,7 +177,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val lastState = wsClient.gameState.value
         viewModelScope.launch {
             _gameStatus.emit(lastState?.status)
-            val player = lastState?.players?.find { it.id == playerId }
+            val player = lastState?.players?.get(playerId)
             _currentBalance.emit(player?.balance)
             _myProperties.emit(player?.properties ?: emptyList())
         }
@@ -258,6 +276,102 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         wsClient.disconnect()
     }
 
+    fun requestBuyProperty(propertyId: String) {
+        val tag = "MonopolyDebug"
+        Log.d(tag, ">>> Intento de compra iniciado para: $propertyId")
+
+
+        val pid = currentPlayerId
+        if (pid == null) {
+            Log.e(tag, "ERROR: Player ID no establecido")
+            viewModelScope.launch { _uiEvents.emit("Error: No has iniciado sesion") }
+            return
+        }
+
+        // Obtener datos frescos
+        val currentState = wsClient.gameState.value
+        if (currentState == null) {
+            Log.e(tag, "ERROR: GameState es nulo. No ahy datos del servidor.")
+            return
+        }
+
+
+        val property = currentState.properties[propertyId]
+        if (property == null) {
+            Log.e(tag, "ERROR: Propiedad '$propertyId' no encontrada en el mapa local.")
+            Log.d(tag, "Propiedades conocidas: ${currentState.properties.keys}")
+            viewModelScope.launch { _uiEvents.emit("Error interna: Propiedad desconocida") }
+            return
+        }
+
+        Log.d(tag, "Propiedad encontrada: ${property.name}, Precio: ${property.price}")
+
+        // 2. Validación Local
+        val myBalance = _currentBalance.value ?: 0
+        if (myBalance < property.price) {
+            Log.w(tag, "BLOQUEO: Saldo insuficiente. Tienes $myBalance, necesitas ${property.price}")
+            viewModelScope.launch { _uiEvents.emit("Saldo insuficiente ($$myBalance < $${property.price})") }
+            return
+        }
+
+        // 3. Envío
+        val payload = JsonObject().apply {
+            addProperty("playerId", pid)
+            addProperty("propertyId", propertyId)
+            addProperty("amount", property.price)
+        }
+
+        val msg = JsonObject().apply {
+            addProperty("type", "REQUEST_PURCHASE")
+            add("payload", payload)
+        }
+
+        val jsonString = gson.toJson(msg)
+        Log.d(tag, "ENVIANDO WEBSOCKET: $jsonString") // <--- ¡Si esto sale, el error es de red!
+        wsClient.send(jsonString)
+    }
+
+    /**
+     * Solicita construir una casa/hotel
+     * Requisito: tener monopolio del color
+     */
+    fun requestBuildHouse(propertyId: String) {
+        val pid = currentPlayerId ?: run {
+            viewModelScope.launch { _uiEvents.emit("Error: No has iniciado sesion") }
+            return
+        }
+
+        val currentState = wsClient.gameState.value
+        val property = currentState?.properties?.get(propertyId)
+
+        if (property == null) {
+            viewModelScope.launch { _uiEvents.emit("Error: Propiedad no encontrada") }
+            return
+        }
+
+        val constructionCost = property.houseCost
+
+        val myBalance = _currentBalance.value ?: 0
+        if (myBalance < constructionCost) {
+            viewModelScope.launch { _uiEvents.emit("Error: Fondos insuficientes para construir en ${property.name}") }
+            return
+        }
+
+        val payload = JsonObject().apply {
+            addProperty("playerId", pid)
+            addProperty("propertyId", propertyId)
+            addProperty("amount", constructionCost)
+            addProperty("action", "build")
+        }
+
+        val msg = JsonObject().apply {
+            addProperty("type", "REQUEST_BUILD")
+            add("payload", payload)
+        }
+
+        wsClient.send(gson.toJson(msg))
+    }
+
     /*
      * Snippet de ejemplo para un @Preview (comentado):
      *
@@ -270,3 +384,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
      * }
      */
 }
+
+// Modelo UI simplificado de propiedad
+data class PropertyUI(val id: String, val name: String, val price: Int)
